@@ -5,110 +5,123 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: #05070a; --card: #11141b; --accent: #31d158; --gold: #f5a623; }
-        body { background: var(--bg); color: white; font-family: -apple-system, sans-serif; margin: 0; overflow: hidden; }
+        :root { --bg: #0b0e14; --card: #1c212a; --accent: #31d158; --gold: #f5a623; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; }
         
-        /* Navbar */
-        .header { display: flex; justify-content: space-between; padding: 20px; align-items: center; border-bottom: 1px solid #1c212a; }
-        .bal-tag { background: #1c212a; padding: 6px 14px; border-radius: 20px; color: var(--gold); font-weight: 800; border: 1px solid #2d343f; }
+        /* Error Popup */
+        #error-pop { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #ff4757; padding: 20px; border-radius: 15px; z-index: 1000; box-shadow: 0 0 30px rgba(255, 71, 87, 0.5); text-align: center; width: 80%; }
 
-        /* Content Area */
-        .main { height: 75vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        
-        /* Roulette */
-        .roulette { position: relative; width: 100%; height: 140px; background: #0a0c10; border-radius: 20px; overflow: hidden; border: 1px solid #1c212a; box-shadow: inset 0 0 20px #000; }
-        .pointer { position: absolute; left: 50%; width: 4px; height: 100%; background: var(--accent); z-index: 10; transform: translateX(-50%); box-shadow: 0 0 15px var(--accent); }
-        .tape { display: flex; position: absolute; top: 20px; transition: 6s cubic-bezier(0.1, 0, 0.05, 1); }
-        .slot { min-width: 100px; height: 100px; margin: 0 10px; background: var(--card); border-radius: 18px; display: flex; align-items: center; justify-content: center; border: 1px solid #1c212a; }
-        .slot img { width: 75px; height: 75px; object-fit: contain; }
+        .header { display: flex; justify-content: space-between; padding: 15px; background: #161b22; border-bottom: 1px solid #2d343f; }
+        .bal { color: var(--gold); font-weight: bold; }
 
-        /* Action */
-        .footer { position: fixed; bottom: 0; width: 100%; padding: 20px; box-sizing: border-box; background: var(--card); border-top: 1px solid #1c212a; }
-        .btn-main { width: 100%; padding: 20px; background: var(--accent); border: none; border-radius: 16px; font-size: 18px; font-weight: 900; color: #000; box-shadow: 0 4px 20px rgba(49, 209, 88, 0.3); }
-        .btn-main:disabled { opacity: 0.3; filter: grayscale(1); }
+        .case-list { display: flex; overflow-x: auto; padding: 20px; gap: 15px; }
+        .case-card { min-width: 140px; background: var(--card); padding: 15px; border-radius: 15px; text-align: center; border: 2px solid transparent; }
+        .case-card.active { border-color: var(--accent); background: #232a35; }
+        .case-card img { width: 80px; height: 80px; margin-bottom: 10px; }
 
-        /* Bottom Menu */
-        .menu { display: flex; margin-top: 15px; }
-        .m-item { flex: 1; text-align: center; font-size: 11px; color: #4b5563; font-weight: bold; }
-        .m-item.active { color: var(--accent); }
+        .roulette { position: relative; width: 90%; height: 120px; background: #05070a; margin: 20px auto; overflow: hidden; border-radius: 15px; border: 1px solid #2d343f; }
+        .pointer { position: absolute; left: 50%; width: 2px; height: 100%; background: var(--accent); z-index: 10; }
+        .tape { display: flex; position: absolute; top: 10px; transition: 6s cubic-bezier(0.1, 0, 0.05, 1); }
+        .slot { min-width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; }
+        .slot img { width: 70px; height: 70px; }
+
+        .btn { width: 90%; display: block; margin: 20px auto; padding: 20px; background: var(--accent); border: none; border-radius: 15px; font-weight: bold; font-size: 16px; color: #000; }
+        .btn:disabled { background: #2d343f; color: #8e959b; }
     </style>
 </head>
 <body>
 
+    <div id="error-pop">❌ НЕДОСТАТОЧНО ЗВЕЗД!<br><small>Пополни баланс у админа</small></div>
+
     <div class="header">
-        <div style="font-weight: 900; font-size: 22px;">SWILL</div>
-        <div class="bal-tag">CHECK /wallet ⭐</div>
+        <div>FRAGMENT HUB</div>
+        <div class="bal">Твой баланс: <span id="val">0</span> ⭐</div>
     </div>
 
-    <div class="main">
-        <div style="margin-bottom: 20px; text-align: center;">
-            <h2 style="margin: 0;">FRAGMENT BOX</h2>
-            <p style="color: #4b5563; font-size: 14px;">Open case to win NFT gifts</p>
+    <div class="case-list">
+        <div class="case-card active" onclick="selectCase('gifts', 1000, this)">
+            <img src="https://nft.fragment.com/gift/CookieHeart.webp">
+            <div>GIFTS</div>
+            <small>1000 ⭐</small>
         </div>
-
-        <div class="roulette">
-            <div class="pointer"></div>
-            <div id="tape" class="tape"></div>
+        <div class="case-card" onclick="selectCase('usernames', 1000, this)">
+            <img src="https://nft.fragment.com/username/news.webp">
+            <div>NAMES</div>
+            <small>1000 ⭐</small>
         </div>
-    </div>
-
-    <div class="footer">
-        <button class="btn-main" id="spin-btn" onclick="spin()">OPEN CASE (500 ⭐)</button>
-        <div class="menu">
-            <div class="m-item active">HUB</div>
-            <div class="m-item">CASE</div>
-            <div class="m-item">INVENTORY</div>
+        <div class="case-card" onclick="selectCase('numbers', 10000, this)">
+            <img src="https://nft.fragment.com/number/88808888888.webp">
+            <div>NUMBERS</div>
+            <small>10000 ⭐</small>
         </div>
     </div>
+
+    <div class="roulette">
+        <div class="pointer"></div>
+        <div id="tape" class="tape"></div>
+    </div>
+
+    <button class="btn" id="spin-btn" onclick="spin()">ОТКРЫТЬ КЕЙС</button>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand();
+        let currentCase = 'gifts';
+        let currentPrice = 1000;
+        let userBalance = 0; // Изначально 0
 
-        const assets = [
-            "https://nft.fragment.com/number/88808888888.webp",
-            "https://nft.fragment.com/gift/CookieHeart.webp",
-            "https://nft.fragment.com/gift/KissFrog.webp",
-            "https://nft.fragment.com/gift/Doge.webp",
-            "https://nft.fragment.com/username/news.webp"
-        ];
+        // Эмуляция получения баланса (в идеале делать через fetch к боту)
+        // Но бот сам проверит при клике.
+        
+        function selectCase(type, price, el) {
+            currentCase = type;
+            currentPrice = price;
+            document.querySelectorAll('.case-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            initTape();
+        }
 
-        function init() {
+        function initTape() {
             const t = document.getElementById('tape');
             t.innerHTML = '';
-            for(let i=0; i<80; i++) {
-                const s = document.createElement('div');
-                s.className = 'slot';
-                const img = document.createElement('img');
-                img.src = assets[Math.floor(Math.random()*assets.length)];
-                // Если картинка не грузится (ошибка 403/404), ставим заглушку
-                img.onerror = function() { this.src = 'https://cdn-icons-png.flaticon.com/512/679/679720.png'; };
-                s.appendChild(img);
-                t.appendChild(s);
+            const img = document.querySelector('.case-card.active img').src;
+            for(let i=0; i<60; i++) {
+                t.innerHTML += `<div class="slot"><img src="${img}"></div>`;
             }
         }
 
+        function showError() {
+            const pop = document.getElementById('error-pop');
+            pop.style.display = 'block';
+            setTimeout(() => pop.style.display = 'none', 2000);
+        }
+
         function spin() {
+            // Если баланс 0 (мы не получили его), бот все равно отклонит. 
+            // Но мы можем заблокировать кнопку, если знаем, что баланс мал.
+            if (userBalance < currentPrice) {
+                // showError(); 
+                // Мы даем нажать, но бот ответит в чате отказом.
+            }
+
             const btn = document.getElementById('spin-btn');
             const tape = document.getElementById('tape');
             btn.disabled = true;
+
             tape.style.transition = 'none';
             tape.style.transform = 'translateX(0)';
             
             setTimeout(() => {
                 tape.style.transition = '6s cubic-bezier(0.1, 0, 0.05, 1)';
-                const stop = 4200 + Math.random()*400;
-                tape.style.transform = `translateX(-${stop}px)`;
+                tape.style.transform = `translateX(-${3500 + Math.random()*500}px)`;
             }, 50);
 
             setTimeout(() => {
-                // Шлем боту сигнал. Бот САМ проверит баланс в базе.
-                tg.sendData(JSON.stringify({action: "open_case"}));
-                setTimeout(() => { tg.close(); }, 1500);
+                tg.sendData(JSON.stringify({case: currentCase}));
+                btn.disabled = false;
             }, 6500);
         }
 
-        init();
+        initTape();
     </script>
 </body>
 </html>
