@@ -5,108 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: #0b0e14; --card: #1c212a; --accent: #248bf2; --gold: #f5a623; --text: #ffffff; }
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 0; }
-        .tabs { display: flex; background: var(--card); border-bottom: 1px solid #2d343f; position: sticky; top: 0; z-index: 100; }
-        .tab { flex: 1; padding: 15px; text-align: center; font-weight: bold; font-size: 13px; color: #8e959b; }
-        .tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
-        .page { display: none; padding: 15px; animation: fadeIn 0.3s ease; }
-        .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .balance-card { background: linear-gradient(135deg, #1e293b, #0b0e14); padding: 20px; border-radius: 15px; border: 1px solid #2d343f; text-align: center; margin-bottom: 15px; }
-        .roulette-box { position: relative; width: 100%; height: 140px; background: #05070a; border-radius: 15px; margin: 20px 0; overflow: hidden; border: 1px solid #334155; }
-        .marker { position: absolute; left: 50%; width: 2px; height: 100%; background: var(--accent); z-index: 10; transform: translateX(-50%); box-shadow: 0 0 15px var(--accent); }
-        .tape { display: flex; position: absolute; top: 20px; transition: 6s cubic-bezier(0.1, 0, 0.05, 1); }
-        .slot { min-width: 100px; height: 100px; margin: 0 5px; background: var(--card); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-        .slot img { width: 70px; height: 70px; object-fit: contain; }
-        .btn { width: 100%; padding: 18px; background: var(--accent); border: none; color: white; border-radius: 12px; font-weight: 800; font-size: 16px; box-shadow: 0 4px 15px rgba(36, 139, 242, 0.3); }
-        .btn:disabled { opacity: 0.5; background: #2d343f; }
-        .asset { display: flex; align-items: center; background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #2d343f; }
-        .asset img { width: 40px; height: 40px; margin-right: 15px; }
+        :root { --bg: #0f1218; --card: #1c212a; --accent: #248bf2; --gold: #f5a623; --text: #ffffff; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 0; overflow: hidden; }
+        
+        .header { padding: 20px; background: var(--card); border-bottom: 1px solid #2d343f; text-align: center; }
+        .balance-pill { background: #252c38; padding: 8px 15px; border-radius: 20px; color: var(--gold); font-weight: bold; font-size: 14px; display: inline-block; }
+
+        .roulette-container { position: relative; width: 100%; height: 160px; background: #05070a; margin: 30px 0; overflow: hidden; border-top: 2px solid #2d343f; border-bottom: 2px solid #2d343f; }
+        .pointer { position: absolute; left: 50%; top: 0; width: 4px; height: 100%; background: var(--accent); z-index: 10; transform: translateX(-50%); box-shadow: 0 0 15px var(--accent); }
+        .tape { display: flex; position: absolute; top: 25px; transition: 6s cubic-bezier(0.1, 0, 0.05, 1); }
+        .item { min-width: 110px; height: 110px; margin: 0 10px; background: var(--card); border-radius: 18px; display: flex; align-items: center; justify-content: center; border: 1px solid #334155; }
+        .item img { width: 85px; height: 85px; object-fit: contain; }
+
+        .footer { padding: 20px; position: fixed; bottom: 0; width: 100%; box-sizing: border-box; }
+        .btn-spin { width: 100%; padding: 20px; background: var(--accent); border: none; color: white; border-radius: 16px; font-weight: 900; font-size: 18px; box-shadow: 0 4px 20px rgba(36, 139, 242, 0.4); }
+        .btn-spin:active { transform: scale(0.96); }
+        .btn-spin:disabled { background: #2d343f; box-shadow: none; opacity: 0.6; }
     </style>
 </head>
 <body>
-    <div class="tabs">
-        <div id="t-h" class="tab active" onclick="nav('h')">HUB</div>
-        <div id="t-b" class="tab" onclick="nav('b')">CASE</div>
-        <div id="t-w" class="tab" onclick="nav('w')">WALLET</div>
+
+    <div class="header">
+        <div style="font-weight: 900; font-size: 20px; margin-bottom: 5px;">FRAGMENT CASE</div>
+        <div class="balance-pill">PREMIUM ACCESS</div>
     </div>
 
-    <div id="h" class="page active">
-        <div class="balance-card">
-            <div style="font-size: 11px; color: #8e959b;">FRAGMENT PROTOCOL</div>
-            <div style="font-size: 28px; font-weight: 900; color: var(--gold);">SWILL WAY</div>
-        </div>
-        <h3>Топ дропы:</h3>
-        <div style="display: flex; gap: 10px;">
-            <img src="https://giftsgram.com/assets/images/gifts/frog.png" width="70">
-            <img src="https://giftsgram.com/assets/images/gifts/duck.png" width="70">
-            <img src="https://giftsgram.com/assets/images/gifts/eternal-rose.png" width="70">
-        </div>
+    <div class="roulette-container">
+        <div class="pointer"></div>
+        <div id="tape" class="tape"></div>
     </div>
 
-    <div id="b" class="page">
-        <h2>PREMIUM BOX</h2>
-        <div class="roulette-box">
-            <div class="marker"></div>
-            <div id="tape" class="tape"></div>
-        </div>
-        <button class="btn" id="spin-btn" onclick="spin()">ОТКРЫТЬ (500 ⭐)</button>
-    </div>
-
-    <div id="w" class="page">
-        <h2>ИНВЕНТАРЬ</h2>
-        <div class="asset"><img src="https://giftsgram.com/assets/images/gifts/frog.png"><div><b>Kiss Frog</b><br><small>NFT Item</small></div></div>
-        <div class="asset"><img src="https://cdn-icons-png.flaticon.com/512/3616/3616230.png"><div><b>+888 0777</b><br><small>Number</small></div></div>
+    <div class="footer">
+        <button class="btn-spin" id="spin-btn" onclick="start()">КРУТИТЬ (500 ⭐)</button>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        function nav(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.getElementById('t-' + id).classList.add('active');
-            if(id === 'b') init();
-        }
-
-        const icons = [
+        const assets = [
+            "https://nft.fragment.com/number/88808888888.webp",
             "https://giftsgram.com/assets/images/gifts/frog.png",
-            "https://giftsgram.com/assets/images/gifts/dog.png",
+            "https://nft.fragment.com/username/bank.webp",
             "https://giftsgram.com/assets/images/gifts/duck.png",
             "https://giftsgram.com/assets/images/gifts/eternal-rose.png",
-            "https://cdn-icons-png.flaticon.com/512/3616/3616230.png"
+            "https://nft.fragment.com/number/88801234567.webp"
         ];
 
-        function init() {
+        function fill() {
             const tape = document.getElementById('tape');
             tape.innerHTML = '';
             for(let i=0; i<80; i++) {
                 const div = document.createElement('div');
-                div.className = 'slot';
-                div.innerHTML = `<img src="${icons[Math.floor(Math.random()*icons.length)]}">`;
+                div.className = 'item';
+                div.innerHTML = `<img src="${assets[Math.floor(Math.random()*assets.length)]}">`;
                 tape.appendChild(div);
             }
         }
 
-        function spin() {
+        function start() {
             const btn = document.getElementById('spin-btn');
             const tape = document.getElementById('tape');
             btn.disabled = true;
             tape.style.transition = 'none';
             tape.style.transform = 'translateX(0)';
+            
             setTimeout(() => {
                 tape.style.transition = '6s cubic-bezier(0.1, 0, 0.05, 1)';
-                tape.style.transform = `translateX(-${4300 + Math.random()*200}px)`;
+                const shift = 4500 + (Math.random() * 300);
+                tape.style.transform = `translateX(-${shift}px)`;
             }, 50);
+
             setTimeout(() => {
                 tg.sendData(JSON.stringify({action: "open_case"}));
                 btn.disabled = false;
             }, 6500);
         }
-        init();
+
+        fill();
     </script>
 </body>
 </html>
