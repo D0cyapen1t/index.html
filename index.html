@@ -1,80 +1,63 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: #0b0e14; --card: #1c212a; --accent: #31d158; --gold: #f5a623; --text: #ffffff; }
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 0; overflow: hidden; }
+        :root { --bg: #05070a; --card: #11141b; --accent: #31d158; --gold: #f5a623; }
+        body { background: var(--bg); color: white; font-family: -apple-system, sans-serif; margin: 0; overflow: hidden; }
         
-        /* Header */
-        .header { display: flex; justify-content: space-between; padding: 15px 20px; align-items: center; background: #161b22; border-bottom: 1px solid #2d343f; }
-        .bal { background: #232a35; padding: 6px 12px; border-radius: 10px; color: var(--gold); font-weight: bold; font-size: 14px; border: 1px solid #3d4450; }
+        /* Navbar */
+        .header { display: flex; justify-content: space-between; padding: 20px; align-items: center; border-bottom: 1px solid #1c212a; }
+        .bal-tag { background: #1c212a; padding: 6px 14px; border-radius: 20px; color: var(--gold); font-weight: 800; border: 1px solid #2d343f; }
 
-        /* Pages */
-        .content { height: calc(100vh - 140px); overflow-y: auto; }
-        .page { display: none; padding: 20px; }
-        .page.active { display: block; }
-
+        /* Content Area */
+        .main { height: 75vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        
         /* Roulette */
-        .roulette-container { position: relative; width: 100%; height: 140px; background: #05070a; margin: 20px 0; overflow: hidden; border-radius: 15px; border: 1px solid #2d343f; }
-        .marker { position: absolute; left: 50%; width: 2px; height: 100%; background: var(--accent); z-index: 10; transform: translateX(-50%); box-shadow: 0 0 10px var(--accent); }
+        .roulette { position: relative; width: 100%; height: 140px; background: #0a0c10; border-radius: 20px; overflow: hidden; border: 1px solid #1c212a; box-shadow: inset 0 0 20px #000; }
+        .pointer { position: absolute; left: 50%; width: 4px; height: 100%; background: var(--accent); z-index: 10; transform: translateX(-50%); box-shadow: 0 0 15px var(--accent); }
         .tape { display: flex; position: absolute; top: 20px; transition: 6s cubic-bezier(0.1, 0, 0.05, 1); }
-        .slot { min-width: 100px; height: 100px; margin: 0 5px; background: var(--card); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-        .slot img { width: 70px; height: 70px; object-fit: contain; }
+        .slot { min-width: 100px; height: 100px; margin: 0 10px; background: var(--card); border-radius: 18px; display: flex; align-items: center; justify-content: center; border: 1px solid #1c212a; }
+        .slot img { width: 75px; height: 75px; object-fit: contain; }
 
-        /* Button */
-        .btn { width: 100%; padding: 18px; background: var(--accent); border: none; color: #000; border-radius: 14px; font-weight: 800; font-size: 16px; margin-top: 10px; }
-        .btn:disabled { opacity: 0.5; filter: grayscale(1); }
+        /* Action */
+        .footer { position: fixed; bottom: 0; width: 100%; padding: 20px; box-sizing: border-box; background: var(--card); border-top: 1px solid #1c212a; }
+        .btn-main { width: 100%; padding: 20px; background: var(--accent); border: none; border-radius: 16px; font-size: 18px; font-weight: 900; color: #000; box-shadow: 0 4px 20px rgba(49, 209, 88, 0.3); }
+        .btn-main:disabled { opacity: 0.3; filter: grayscale(1); }
 
-        /* Bottom Nav */
-        .nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #161b22; display: flex; border-top: 1px solid #2d343f; padding-bottom: env(safe-area-inset-bottom); }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #8e959b; font-weight: bold; }
-        .nav-item.active { color: var(--accent); }
-        .nav-item svg { width: 22px; height: 22px; margin-bottom: 4px; fill: currentColor; }
+        /* Bottom Menu */
+        .menu { display: flex; margin-top: 15px; }
+        .m-item { flex: 1; text-align: center; font-size: 11px; color: #4b5563; font-weight: bold; }
+        .m-item.active { color: var(--accent); }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div style="font-weight: 900; font-size: 18px;">SWILL HUB</div>
-        <div class="bal"><span id="user-bal">0</span> ⭐</div>
+        <div style="font-weight: 900; font-size: 22px;">SWILL</div>
+        <div class="bal-tag">CHECK /wallet ⭐</div>
     </div>
 
-    <div class="content">
-        <div id="h" class="page active">
-            <div style="background: linear-gradient(135deg, #1e293b, #0b0e14); padding: 25px; border-radius: 15px; border: 1px solid #334155; margin-bottom: 20px;">
-                <h2 style="margin: 0;">FRAGMENT EVENT</h2>
-                <p style="color: #8e959b; font-size: 13px;">Limited edition drops available now.</p>
-            </div>
-            <img src="https://nft.fragment.com/gift/KissFrog.webp" style="width: 100%; border-radius: 15px;">
+    <div class="main">
+        <div style="margin-bottom: 20px; text-align: center;">
+            <h2 style="margin: 0;">FRAGMENT BOX</h2>
+            <p style="color: #4b5563; font-size: 14px;">Open case to win NFT gifts</p>
         </div>
 
-        <div id="b" class="page">
-            <h2 style="margin: 0;">ELITE CASE</h2>
-            <div class="roulette-container">
-                <div class="marker"></div>
-                <div id="tape" class="tape"></div>
-            </div>
-            <button class="btn" id="spin-btn" onclick="spin()">ОТКРЫТЬ (500 ⭐)</button>
-        </div>
-
-        <div id="w" class="page">
-            <h2>INVENTORY</h2>
-            <p style="color: #8e959b;">Все выигрыши приходят в чат бота.</p>
+        <div class="roulette">
+            <div class="pointer"></div>
+            <div id="tape" class="tape"></div>
         </div>
     </div>
 
-    <div class="nav">
-        <div class="nav-item active" id="n-h" onclick="nav('h')">
-            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>HUB
-        </div>
-        <div class="nav-item" id="n-b" onclick="nav('b')">
-            <svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-8-2h4v2h-4V4z"/></svg>CASE
-        </div>
-        <div class="nav-item" id="n-w" onclick="nav('w')">
-            <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>WALLET
+    <div class="footer">
+        <button class="btn-main" id="spin-btn" onclick="spin()">OPEN CASE (500 ⭐)</button>
+        <div class="menu">
+            <div class="m-item active">HUB</div>
+            <div class="m-item">CASE</div>
+            <div class="m-item">INVENTORY</div>
         </div>
     </div>
 
@@ -82,34 +65,26 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Отображение баланса (берем из initData или просто запрашиваем)
-        // Для MVP: баланс обновляется после каждого открытия.
-        let balance = 0; 
-
-        function nav(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.getElementById('n-' + id).classList.add('active');
-            if(id === 'b') init();
-        }
-
-        const imgs = [
+        const assets = [
             "https://nft.fragment.com/number/88808888888.webp",
+            "https://nft.fragment.com/gift/CookieHeart.webp",
             "https://nft.fragment.com/gift/KissFrog.webp",
             "https://nft.fragment.com/gift/Doge.webp",
-            "https://nft.fragment.com/gift/CookieHeart.webp",
             "https://nft.fragment.com/username/news.webp"
         ];
 
         function init() {
-            const tape = document.getElementById('tape');
-            tape.innerHTML = '';
+            const t = document.getElementById('tape');
+            t.innerHTML = '';
             for(let i=0; i<80; i++) {
                 const s = document.createElement('div');
                 s.className = 'slot';
-                s.innerHTML = `<img src="${imgs[Math.floor(Math.random()*imgs.length)]}">`;
-                tape.appendChild(s);
+                const img = document.createElement('img');
+                img.src = assets[Math.floor(Math.random()*assets.length)];
+                // Если картинка не грузится (ошибка 403/404), ставим заглушку
+                img.onerror = function() { this.src = 'https://cdn-icons-png.flaticon.com/512/679/679720.png'; };
+                s.appendChild(img);
+                t.appendChild(s);
             }
         }
 
@@ -122,19 +97,18 @@
             
             setTimeout(() => {
                 tape.style.transition = '6s cubic-bezier(0.1, 0, 0.05, 1)';
-                const shift = 4000 + Math.random()*500;
-                tape.style.transform = `translateX(-${shift}px)`;
+                const stop = 4200 + Math.random()*400;
+                tape.style.transform = `translateX(-${stop}px)`;
             }, 50);
 
             setTimeout(() => {
-                // ОТПРАВКА ДАННЫХ
+                // Шлем боту сигнал. Бот САМ проверит баланс в базе.
                 tg.sendData(JSON.stringify({action: "open_case"}));
-                
-                // Чтобы приложение НЕ закрывалось (если юзаешь Keyboard Button)
-                // Если юзаешь Inline кнопку - оно закроется при sendData. 
-                // РЕШЕНИЕ: Кнопка в боте должна быть "ОТКРЫТЬ КЕЙС" типа WebApp Keyboard Button.
+                setTimeout(() => { tg.close(); }, 1500);
             }, 6500);
         }
+
+        init();
     </script>
 </body>
 </html>
