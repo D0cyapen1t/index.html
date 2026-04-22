@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --accent: #3b82f6; --gold: #fbbf24; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; user-select: none; }
+        
+        /* Навигация */
+        .nav { display: flex; background: var(--card); position: sticky; top: 0; z-index: 20; border-bottom: 1px solid #334155; }
+        .nav-btn { flex: 1; text-align: center; padding: 15px; cursor: pointer; color: #94a3b8; font-weight: 600; }
+        .nav-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+
+        .page { display: none; padding: 15px; padding-bottom: 100px; }
+        .page.active { display: block; }
+
+        /* Рулетка */
+        .case-area { text-align: center; margin-top: 30px; }
+        .roulette { position: relative; width: 320px; height: 120px; background: var(--card); border: 2px solid #334155; border-radius: 12px; margin: 20px auto; overflow: hidden; }
+        .pointer { position: absolute; left: 50%; top: 0; width: 4px; height: 100%; background: var(--gold); z-index: 10; transform: translateX(-50%); box-shadow: 0 0 10px var(--gold); }
+        .tape { display: flex; position: absolute; top: 10px; transition: 5s cubic-bezier(0.1, 0, 0.1, 1); }
+        
+        /* Элементы в рулетке */
+        .r-item { min-width: 90px; height: 90px; margin: 5px; background: #0f172a; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 2px solid #334155;}
+        .r-item img { width: 60px; height: 60px; object-fit: contain; }
+
+        /* Кнопка */
+        .spin-btn { width: 100%; max-width: 320px; padding: 18px; background: var(--accent); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.2s; }
+        .spin-btn:active { transform: scale(0.97); opacity: 0.8; }
+        .spin-btn:disabled { background: #64748b; }
+
+        /* Сетка Кошелька */
+        .inventory-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
+        
+        /* КАРТОЧКА ПРЕДМЕТА С АНИМАЦИЕЙ */
+        .w-item { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #334155; position: relative; overflow: hidden; }
+        .w-item img { width: 80px; height: 80px; object-fit: contain; margin-bottom: 10px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
+        .w-item-name { font-size: 12px; color: #cbd5e1; font-weight: 500; }
+        .w-item-type { position: absolute; top: 5px; left: 5px; font-size: 8px; background: var(--accent); padding: 2px 5px; border-radius: 4px; text-transform: uppercase; }
+
+        /* АНИМАЦИЯ СВЕЧЕНИЯ И ПУЛЬСАЦИИ ДЛЯ NFT */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); border-color: #334155; }
+            50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); border-color: var(--accent); }
+            100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); border-color: #334155; }
+        }
+        .w-item { animation: pulse 3s infinite ease-in-out; } /* Применяем ко всем */
+
+    </style>
+</head>
+<body>
+
+    <div class="nav">
+        <div id="b-case" class="nav-btn active" onclick="tab('case')">КЕЙСЫ</div>
+        <div id="b-wallet" class="nav-btn" onclick="tab('wallet')">КОШЕЛЕК</div>
+    </div>
+
+    <div id="case" class="page active">
+        <div class="case-area">
+            <h2>Premium Case</h2>
+            <div class="roulette">
+                <div class="pointer"></div>
+                <div class="tape" id="tape"></div>
+            </div>
+            <button class="spin-btn" id="spin-btn" onclick="startSpin()">ОТКРЫТЬ (500 ⭐)</button>
+        </div>
+    </div>
+
+    <div id="wallet" class="page">
+        <h2>Мой Инвентарь</h2>
+        <div class="inventory-grid">
+            <div class="w-item">
+                <div class="w-item-type">nft</div>
+                <img src="https://telegram.org/img/star_gift_v2.png">
+                <div class="w-item-name">Spicy Eggplant</div>
+            </div>
+            <div class="w-item" style="animation-delay: 0.5s;">
+                <div class="w-item-type" style="background: var(--gold); color:black;">номер</div>
+                <img src="https://telegram.org/img/fragment/number.png">
+                <div class="w-item-name">+888 7777 1234</div>
+            </div>
+            <div class="w-item" style="animation-delay: 1s;">
+                <div class="w-item-type">username</div>
+                <img src="https://telegram.org/img/fragment/username.png">
+                <div class="w-item-name">@crypto</div>
+            </div>
+        </div>
+        <p style="text-align:center; color:gray; font-size:12px; margin-top:20px;">Это визуализация. Настоящий список в боте (/wallet)</p>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function tab(name) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(d => d.classList.remove('active'));
+            document.getElementById(name).classList.add('active');
+            document.getElementById('b-' + name).classList.add('active');
+        }
+
+        // Картинки для рулетки
+        const r_imgs = [
+            "https://telegram.org/img/star_gift_v2.png",
+            "https://telegram.org/img/fragment/number.png",
+            "https://telegram.org/img/fragment/username.png"
+        ];
+
+        function initTape() {
+            const tape = document.getElementById('tape');
+            tape.innerHTML = '';
+            for(let i=0; i<80; i++) {
+                const div = document.createElement('div');
+                div.className = 'r-item';
+                const img = document.createElement('img');
+                img.src = r_imgs[Math.floor(Math.random()*r_imgs.length)];
+                div.appendChild(img);
+                tape.appendChild(div);
+            }
+        }
+
+        function startSpin() {
+            const tape = document.getElementById('tape');
+            const btn = document.getElementById('spin-btn');
+            btn.disabled = true;
+            btn.innerText = "Крутим...";
+
+            tape.style.transition = 'none';
+            tape.style.transform = 'translateX(0)';
+            
+            setTimeout(() => {
+                tape.style.transition = '5s cubic-bezier(0.1, 0, 0.1, 1)';
+                // Случайное смещение в конце для реализма
+                const finalX = 4000 + (Math.random() * 100);
+                tape.style.transform = `translateX(-${finalX}px)`;
+            }, 50);
+
+            // Закрываем и отправляем через 5.5 сек
+            setTimeout(() => {
+                tg.sendData(JSON.stringify({action: "open_case"}));
+            }, 5500);
+        }
+
+        initTape();
+        tg.ready();
+    </script>
+</body>
+</html>
