@@ -5,206 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { 
-            --bg: #0b0e14; 
-            --card: #1c212a; 
-            --accent: #248bf2; 
-            --gold: #f5a623; 
-            --text: #ffffff; 
-            --gray: #8e959b;
-        }
-
-        body { 
-            background: var(--bg); 
-            color: var(--text); 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0; 
-            padding: 0; 
-            overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* Навигация */
-        .tabs { 
-            display: flex; 
-            background: var(--card); 
-            border-bottom: 1px solid #2d343f; 
-            position: sticky; 
-            top: 0; 
-            z-index: 100;
-        }
-        .tab { 
-            flex: 1; 
-            padding: 15px; 
-            text-align: center; 
-            font-weight: bold; 
-            font-size: 14px; 
-            color: var(--gray); 
-            transition: 0.3s;
-        }
-        .tab.active { 
-            color: var(--accent); 
-            border-bottom: 2px solid var(--accent); 
-        }
-
+        :root { --bg: #0b0e14; --card: #1c212a; --accent: #248bf2; --gold: #f5a623; --text: #ffffff; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 0; }
+        .tabs { display: flex; background: var(--card); border-bottom: 1px solid #2d343f; position: sticky; top: 0; z-index: 100; }
+        .tab { flex: 1; padding: 15px; text-align: center; font-weight: bold; font-size: 13px; color: #8e959b; }
+        .tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
         .page { display: none; padding: 15px; animation: fadeIn 0.3s ease; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Баланс */
-        .balance-card { 
-            background: linear-gradient(135deg, #1e293b, #0b0e14); 
-            padding: 25px; 
-            border-radius: 20px; 
-            border: 1px solid #2d343f; 
-            text-align: center; 
-            margin-bottom: 20px;
-        }
-        .balance-val { font-size: 32px; font-weight: 800; color: var(--gold); }
-
-        /* Рулетка */
-        .roulette-wrapper { 
-            position: relative; 
-            width: 100%; 
-            height: 140px; 
-            background: #05070a; 
-            border-radius: 16px; 
-            margin: 20px 0; 
-            overflow: hidden; 
-            border: 2px solid #2d343f;
-        }
-        .marker { 
-            position: absolute; 
-            left: 50%; 
-            top: 0; 
-            width: 3px; 
-            height: 100%; 
-            background: var(--accent); 
-            z-index: 10; 
-            transform: translateX(-50%); 
-            box-shadow: 0 0 15px var(--accent); 
-        }
-        .tape { 
-            display: flex; 
-            position: absolute; 
-            top: 20px; 
-            transition: 6s cubic-bezier(0.1, 0, 0.05, 1); 
-        }
-        .slot { 
-            min-width: 100px; 
-            height: 100px; 
-            margin: 0 8px; 
-            background: var(--card); 
-            border-radius: 14px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            border-bottom: 3px solid #2d343f;
-        }
+        .balance-card { background: linear-gradient(135deg, #1e293b, #0b0e14); padding: 20px; border-radius: 15px; border: 1px solid #2d343f; text-align: center; margin-bottom: 15px; }
+        .roulette-box { position: relative; width: 100%; height: 140px; background: #05070a; border-radius: 15px; margin: 20px 0; overflow: hidden; border: 1px solid #334155; }
+        .marker { position: absolute; left: 50%; width: 2px; height: 100%; background: var(--accent); z-index: 10; transform: translateX(-50%); box-shadow: 0 0 15px var(--accent); }
+        .tape { display: flex; position: absolute; top: 20px; transition: 6s cubic-bezier(0.1, 0, 0.05, 1); }
+        .slot { min-width: 100px; height: 100px; margin: 0 5px; background: var(--card); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
         .slot img { width: 70px; height: 70px; object-fit: contain; }
-
-        /* Кнопка */
-        .btn-main { 
-            width: 100%; 
-            padding: 18px; 
-            background: var(--accent); 
-            border: none; 
-            color: white; 
-            border-radius: 15px; 
-            font-weight: 800; 
-            font-size: 16px; 
-            box-shadow: 0 4px 15px rgba(36, 139, 242, 0.3);
-            cursor: pointer;
-        }
-        .btn-main:active { transform: scale(0.98); }
-        .btn-main:disabled { background: #334155; opacity: 0.6; }
-
-        /* Кошелек */
-        .asset-card { 
-            display: flex; 
-            align-items: center; 
-            background: var(--card); 
-            padding: 15px; 
-            border-radius: 16px; 
-            margin-bottom: 10px; 
-            border: 1px solid #2d343f;
-        }
-        .asset-card img { width: 45px; height: 45px; margin-right: 15px; }
-        .asset-info { text-align: left; }
-        .asset-name { font-weight: bold; font-size: 15px; }
-        .asset-status { font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; }
-
+        .btn { width: 100%; padding: 18px; background: var(--accent); border: none; color: white; border-radius: 12px; font-weight: 800; font-size: 16px; box-shadow: 0 4px 15px rgba(36, 139, 242, 0.3); }
+        .btn:disabled { opacity: 0.5; background: #2d343f; }
+        .asset { display: flex; align-items: center; background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #2d343f; }
+        .asset img { width: 40px; height: 40px; margin-right: 15px; }
     </style>
 </head>
 <body>
-
     <div class="tabs">
-        <div id="t-hub" class="tab active" onclick="nav('hub')">ГЛАВНАЯ</div>
-        <div id="t-box" class="tab" onclick="nav('box')">КЕЙСЫ</div>
-        <div id="t-wallet" class="tab" onclick="nav('wallet')">КОШЕЛЕК</div>
+        <div id="t-h" class="tab active" onclick="nav('h')">HUB</div>
+        <div id="t-b" class="tab" onclick="nav('b')">CASE</div>
+        <div id="t-w" class="tab" onclick="nav('w')">WALLET</div>
     </div>
 
-    <div id="hub" class="page active">
+    <div id="h" class="page active">
         <div class="balance-card">
-            <div style="color: var(--gray); font-size: 12px; margin-bottom: 5px;">FRAGMENT ASSETS</div>
-            <div class="balance-val">15,000 ⭐</div>
-            <p style="font-size: 11px; color: var(--gray);">Premium Gambling Protocol v3.0</p>
+            <div style="font-size: 11px; color: #8e959b;">FRAGMENT PROTOCOL</div>
+            <div style="font-size: 28px; font-weight: 900; color: var(--gold);">SWILL WAY</div>
         </div>
-        
-        <div style="text-align: left; padding: 0 5px;">
-            <h3>Популярные подарки</h3>
-            <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;">
-                <img src="https://giftsgram.com/assets/images/gifts/frog.png" style="width: 80px; background: var(--card); border-radius: 12px; padding: 10px;">
-                <img src="https://giftsgram.com/assets/images/gifts/dog.png" style="width: 80px; background: var(--card); border-radius: 12px; padding: 10px;">
-                <img src="https://giftsgram.com/assets/images/gifts/duck.png" style="width: 80px; background: var(--card); border-radius: 12px; padding: 10px;">
-            </div>
+        <h3>Топ дропы:</h3>
+        <div style="display: flex; gap: 10px;">
+            <img src="https://giftsgram.com/assets/images/gifts/frog.png" width="70">
+            <img src="https://giftsgram.com/assets/images/gifts/duck.png" width="70">
+            <img src="https://giftsgram.com/assets/images/gifts/eternal-rose.png" width="70">
         </div>
     </div>
 
-    <div id="box" class="page">
-        <h2 style="margin-top: 0;">ELITE CASE</h2>
-        <div class="roulette-wrapper">
+    <div id="b" class="page">
+        <h2>PREMIUM BOX</h2>
+        <div class="roulette-box">
             <div class="marker"></div>
             <div id="tape" class="tape"></div>
         </div>
-        <button class="btn-main" id="spin-btn" onclick="startSpin()">ОТКРЫТЬ (500 ⭐)</button>
-        <p style="color: var(--gray); font-size: 12px; margin-top: 15px;">Выигрыш автоматически зачисляется в /wallet</p>
+        <button class="btn" id="spin-btn" onclick="spin()">ОТКРЫТЬ (500 ⭐)</button>
     </div>
 
-    <div id="wallet" class="page">
-        <h2 style="margin-top: 0;">ИНВЕНТАРЬ</h2>
-        
-        <div class="asset-card">
-            <img src="https://giftsgram.com/assets/images/gifts/frog.png">
-            <div class="asset-info">
-                <div class="asset-name">Kiss Frog</div>
-                <div class="asset-status">Collectible NFT</div>
-            </div>
-        </div>
-
-        <div class="asset-card">
-            <img src="https://cdn-icons-png.flaticon.com/512/3616/3616230.png">
-            <div class="asset-info">
-                <div class="asset-name">+888 0000 7777</div>
-                <div class="asset-status">Anonymous Number</div>
-            </div>
-        </div>
-        
-        <p style="text-align: center; color: var(--gray); font-size: 11px; margin-top: 20px;">Полная история транзакций доступна в @Fragment</p>
+    <div id="w" class="page">
+        <h2>ИНВЕНТАРЬ</h2>
+        <div class="asset"><img src="https://giftsgram.com/assets/images/gifts/frog.png"><div><b>Kiss Frog</b><br><small>NFT Item</small></div></div>
+        <div class="asset"><img src="https://cdn-icons-png.flaticon.com/512/3616/3616230.png"><div><b>+888 0777</b><br><small>Number</small></div></div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.ready();
 
         function nav(id) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             document.getElementById('t-' + id).classList.add('active');
-            
-            if(id === 'box') initRoulette();
+            if(id === 'b') init();
         }
 
         const icons = [
@@ -212,51 +77,36 @@
             "https://giftsgram.com/assets/images/gifts/dog.png",
             "https://giftsgram.com/assets/images/gifts/duck.png",
             "https://giftsgram.com/assets/images/gifts/eternal-rose.png",
-            "https://giftsgram.com/assets/images/gifts/melon.png",
-            "https://giftsgram.com/assets/images/gifts/cake.png",
-            "https://cdn-icons-png.flaticon.com/512/3616/3616230.png",
-            "https://cdn-icons-png.flaticon.com/512/7022/7022927.png"
+            "https://cdn-icons-png.flaticon.com/512/3616/3616230.png"
         ];
 
-        function initRoulette() {
+        function init() {
             const tape = document.getElementById('tape');
             tape.innerHTML = '';
-            // Создаем длинную ленту для прокрутки
-            for(let i = 0; i < 90; i++) {
+            for(let i=0; i<80; i++) {
                 const div = document.createElement('div');
                 div.className = 'slot';
-                const img = document.createElement('img');
-                img.src = icons[Math.floor(Math.random() * icons.length)];
-                div.appendChild(img);
+                div.innerHTML = `<img src="${icons[Math.floor(Math.random()*icons.length)]}">`;
                 tape.appendChild(div);
             }
         }
 
-        function startSpin() {
+        function spin() {
             const btn = document.getElementById('spin-btn');
             const tape = document.getElementById('tape');
-            
             btn.disabled = true;
-            btn.innerText = "УДАЧИ...";
-
             tape.style.transition = 'none';
             tape.style.transform = 'translateX(0)';
-            
             setTimeout(() => {
                 tape.style.transition = '6s cubic-bezier(0.1, 0, 0.05, 1)';
-                // Рассчитываем смещение (минимум 4500px для долгого кручения)
-                const target = 4500 + (Math.random() * 300);
-                tape.style.transform = `translateX(-${target}px)`;
+                tape.style.transform = `translateX(-${4300 + Math.random()*200}px)`;
             }, 50);
-
-            // Через 6.5 секунд отправляем данные боту
             setTimeout(() => {
                 tg.sendData(JSON.stringify({action: "open_case"}));
+                btn.disabled = false;
             }, 6500);
         }
-
-        // Первичная инициализация
-        initRoulette();
+        init();
     </script>
 </body>
 </html>
