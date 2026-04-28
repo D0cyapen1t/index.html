@@ -5,14 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { 
-            --gold: #ffca28; --bg: #0b0d10; --card: #161920; 
-            --accent: #232731; --red: #ff4757; --green: #2ed573;
-        }
+        :root { --gold: #ffca28; --bg: #0b0d10; --card: #161920; --accent: #232731; --red: #ff4757; --green: #2ed573; }
         body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; margin: 0; padding: 0; overflow: hidden; }
         
-        .header { padding: 15px; background: rgba(0,0,0,0.6); backdrop-filter: blur(15px); border-bottom: 1px solid var(--accent); display: flex; justify-content: center; }
-        .balance-pill { background: #161920; border: 1px solid var(--gold); padding: 8px 25px; border-radius: 50px; font-size: 20px; font-weight: 900; color: var(--gold); box-shadow: 0 0 15px rgba(255,202,40,0.2); }
+        .header { padding: 15px; background: rgba(0,0,0,0.8); border-bottom: 1px solid var(--accent); display: flex; justify-content: center; }
+        .balance-pill { background: #000; border: 1px solid var(--gold); padding: 8px 25px; border-radius: 50px; font-size: 20px; font-weight: 900; color: var(--gold); }
 
         .section { display: none; height: 82vh; padding: 15px; box-sizing: border-box; overflow-y: auto; }
         .active { display: block; }
@@ -20,35 +17,38 @@
         /* ROULETTE */
         .roulette-container { position: relative; width: 100%; height: 180px; background: #050608; border-radius: 24px; overflow: hidden; border: 2px solid var(--accent); margin-top: 10px; }
         .pointer { position: absolute; left: 50%; top: 0; width: 4px; height: 100%; background: var(--gold); z-index: 20; transform: translateX(-50%); box-shadow: 0 0 20px var(--gold); }
-        .tape { display: flex; align-items: center; height: 100%; will-change: transform; }
-        .slot { min-width: 130px; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #1c212a; margin: 0 5px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.05); }
-        .slot img, .slot-emoji { width: 70px; height: 70px; object-fit: contain; }
-        .slot-emoji { font-size: 50px; display: flex; align-items: center; justify-content: center; }
+        .tape { display: flex; align-items: center; height: 100%; will-change: transform; transition: transform 6s cubic-bezier(0.1, 0, 0.05, 1); }
+        .slot { min-width: 130px; width: 130px; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #1c212a; margin: 0 5px; border-radius: 18px; flex-shrink: 0; }
+        .slot img { width: 70px; height: 70px; object-fit: contain; }
+        .slot-emoji { font-size: 50px; }
         .slot span { font-size: 11px; font-weight: 700; margin-top: 10px; color: #a0a8b3; text-transform: uppercase; }
 
         /* CRASH */
-        .crash-viewport { background: #090a0d; border-radius: 24px; height: 220px; position: relative; border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 20px; }
-        #multiplier { font-size: 60px; font-weight: 900; color: var(--gold); z-index: 10; }
-        .rocket-ship { position: absolute; bottom: 20px; left: 20px; font-size: 40px; transition: 0.1s linear; }
+        .crash-area { background: radial-gradient(circle, #1a1e26 0%, #090a0d 100%); border-radius: 24px; height: 220px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 2px solid var(--accent); margin-bottom: 15px; }
+        #mult { font-size: 60px; font-weight: 900; color: var(--gold); z-index: 10; }
+        #rocket { position: absolute; bottom: 20px; left: 20px; font-size: 40px; transition: 0.1s linear; }
 
         .btn-main { background: linear-gradient(135deg, #ffca28, #ff8f00); color: #000; border: none; width: 100%; padding: 18px; border-radius: 16px; font-weight: 800; font-size: 16px; text-transform: uppercase; cursor: pointer; }
         .btn-main:disabled { background: #2c303a; color: #555; }
+        .btn-stop { background: var(--red); color: #fff; }
         
-        .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; }
         .modal-win { background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid var(--gold); text-align: center; width: 80%; }
 
         .navbar { position: fixed; bottom: 0; width: 100%; height: 75px; background: #161920; display: flex; border-top: 1px solid var(--accent); }
         .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #5b626e; font-size: 11px; font-weight: 700; }
         .nav-btn.active { color: var(--gold); }
+
+        .inv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
     </style>
 </head>
 <body>
 
-<div class="header"><div class="balance-pill">⭐ <span id="balance-display">0</span></div></div>
+<div class="header"><div class="balance-pill">⭐ <span id="balance-val">0</span></div></div>
 
 <div id="win-modal" class="modal-overlay">
     <div class="modal-win">
-        <h2 style="color:var(--gold); margin:0;">ВЫИГРЫШ!</h2>
+        <h2 style="color:var(--gold); margin:0;">ВЫПАЛО!</h2>
         <div id="win-content" style="padding: 20px 0;"></div>
         <button class="btn-main" onclick="claimReward()">ЗАБРАТЬ</button>
     </div>
@@ -67,17 +67,17 @@
 </div>
 
 <div id="tab-crash" class="section">
-    <div class="crash-viewport">
-        <div id="multiplier">1.00x</div>
-        <div id="rocket" class="rocket-ship">🚀</div>
+    <div class="crash-area">
+        <div id="mult">1.00x</div>
+        <div id="rocket">🚀</div>
     </div>
-    <input type="number" id="bet-amount" style="width:100%; padding:15px; background:#1c212a; border:1px solid #333; color:#fff; border-radius:12px; margin-bottom:15px;" placeholder="Ставка...">
-    <button class="btn-main" id="crash-btn" onclick="startCrash()">ВЗЛЕТАЕМ</button>
+    <input type="number" id="bet-input" style="width:100%; padding:15px; background:#1c212a; border:1px solid #333; color:#fff; border-radius:12px; margin-bottom:15px; text-align:center;" placeholder="Сумма ставки...">
+    <button class="btn-main" id="crash-btn" onclick="handleCrash()">ВЗЛЕТАЕМ</button>
 </div>
 
 <div id="tab-inv" class="section">
-    <h3 style="color:var(--gold);">ИНВЕНТАРЬ</h3>
-    <div id="inv-list" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;"></div>
+    <h3 style="color:var(--gold); margin-bottom:15px;">ИНВЕНТАРЬ</h3>
+    <div id="inv-list" class="inv-grid"></div>
 </div>
 
 <nav class="navbar">
@@ -100,24 +100,16 @@
         {id: 'stars', name: '1000 Stars', img: '⭐', price: 0}
     ];
 
-    // --- ЛОГИКА БАЛАНСА (ФИКС 2000) ---
-    const urlParams = new URLSearchParams(window.location.search);
-    let balance = parseInt(urlParams.get('balance'));
-    
-    // Если в URL пусто, проверяем память. Если и там пусто - СТРОГО 0.
-    if (isNaN(balance)) {
-        balance = localStorage.getItem('user_balance') !== null ? parseInt(localStorage.getItem('user_balance')) : 0;
-    }
-
+    let balance = parseInt(new URLSearchParams(window.location.search).get('balance')) || parseInt(localStorage.getItem('user_bal')) || 0;
     let inventory = JSON.parse(localStorage.getItem('user_inv')) || [];
-    let isRolling = false;
-    let winItem = null;
+    let isBusy = false;
+    let currentPrize = null;
 
     function sync() {
-        localStorage.setItem('user_balance', balance);
+        localStorage.setItem('user_bal', balance);
         localStorage.setItem('user_inv', JSON.stringify(inventory));
-        document.getElementById('balance-display').innerText = balance;
-        document.getElementById('spin-btn').disabled = (balance < 500 || isRolling);
+        document.getElementById('balance-val').innerText = balance;
+        document.getElementById('spin-btn').disabled = (balance < 500 || isBusy);
     }
 
     function nav(id) {
@@ -128,10 +120,10 @@
         if(id === 'inv') renderInv();
     }
 
-    // --- РУЛЕТКА (ФИКС ТОЧНОСТИ) ---
+    // --- РУЛЕТКА ---
     function startRoulette() {
-        if(balance < 500 || isRolling) return;
-        balance -= 500; isRolling = true; sync();
+        if(balance < 500 || isBusy) return;
+        balance -= 500; isBusy = true; sync();
 
         const tape = document.getElementById('tape');
         tape.style.transition = 'none';
@@ -139,98 +131,119 @@
         tape.innerHTML = '';
 
         const slotWidth = 140; // 130px + 10px margin
-        for(let i=0; i<80; i++) {
-            const it = items[Math.floor(Math.random()*items.length)];
-            tape.innerHTML += `<div class="slot">${it.img === '⭐' ? '<div class="slot-emoji">⭐</div>' : `<img src="img/${it.img}">`}<span>${it.name}</span></div>`;
-        }
+        const winIdx = 60;
 
-        const winIdx = 70;
-        winItem = items[Math.floor(Math.random()*items.length)];
-        const slots = tape.querySelectorAll('.slot');
-        slots[winIdx].innerHTML = `${winItem.img === '⭐' ? '<div class="slot-emoji">⭐</div>' : `<img src="img/${winItem.img}">`}<span>${winItem.name}</span>`;
+        for(let i=0; i<70; i++) {
+            let it = items[Math.floor(Math.random()*items.length)];
+            if(i === winIdx) {
+                currentPrize = items[Math.floor(Math.random()*items.length)];
+                it = currentPrize;
+            }
+            const content = it.img === '⭐' ? '<div class="slot-emoji">⭐</div>' : `<img src="img/${it.img}">`;
+            tape.innerHTML += `<div class="slot">${content}<span>${it.name}</span></div>`;
+        }
 
         setTimeout(() => {
             tape.style.transition = 'transform 6s cubic-bezier(0.1, 0, 0.05, 1)';
-            // Центрирование: (индекс * ширина) - (половина экрана) + (половина слота)
-            const stopAt = (winIdx * slotWidth) - (window.innerWidth / 2) + (slotWidth / 2);
-            tape.style.transform = `translateX(-${stopAt}px)`;
+            const stopPos = (winIdx * slotWidth) - (window.innerWidth / 2) + (slotWidth / 2);
+            tape.style.transform = `translateX(-${stopPos}px)`;
         }, 50);
 
         setTimeout(() => {
             document.getElementById('win-modal').style.display = 'flex';
             document.getElementById('win-content').innerHTML = `
-                ${winItem.img === '⭐' ? '<div style="font-size:80px">⭐</div>' : `<img src="img/${winItem.img}" style="width:120px">`}
-                <h3>${winItem.name}</h3>
+                ${currentPrize.img === '⭐' ? '<div style="font-size:80px">⭐</div>' : `<img src="img/${currentPrize.img}" style="width:120px">`}
+                <h3>${currentPrize.name}</h3>
             `;
             if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         }, 6500);
     }
 
     function claimReward() {
-        if(winItem.id === 'stars') balance += 1000; else inventory.push(winItem);
+        if(currentPrize.id === 'stars') balance += 1000; else inventory.push(currentPrize);
         document.getElementById('win-modal').style.display = 'none';
-        isRolling = false; winItem = null; sync();
+        isBusy = false; sync();
     }
 
-    // --- ИНВЕНТАРЬ И ПРОДАЖА ---
+    // --- КРАШ ---
+    let crashActive = false;
+    let crashVal = 1.0;
+    let crashTimer;
+
+    function handleCrash() {
+        const bet = parseInt(document.getElementById('bet-input').value);
+        if(!bet || bet > balance || bet <= 0 || (isBusy && !crashActive)) return;
+
+        const btn = document.getElementById('crash-btn');
+        if(crashActive) {
+            clearInterval(crashTimer);
+            balance += Math.floor(bet * crashVal);
+            alert(`Выигрыш: ${Math.floor(bet * crashVal)} ⭐`);
+            resetCrash();
+            return;
+        }
+
+        balance -= bet; isBusy = true; crashActive = true; crashVal = 1.0; sync();
+        btn.innerText = "ЗАБРАТЬ"; btn.classList.add('btn-stop');
+        const boom = (Math.random() * 4 + 1.1).toFixed(2);
+
+        crashTimer = setInterval(() => {
+            crashVal += 0.01;
+            document.getElementById('mult').innerText = crashVal.toFixed(2) + "x";
+            document.getElementById('rocket').style.bottom = (20 + crashVal * 15) + "px";
+            document.getElementById('rocket').style.left = (20 + crashVal * 20) + "px";
+
+            if(crashVal >= boom) {
+                clearInterval(crashTimer);
+                document.getElementById('mult').innerText = "BOOM!";
+                document.getElementById('mult').style.color = "var(--red)";
+                setTimeout(resetCrash, 2000);
+            }
+        }, 60);
+    }
+
+    function resetCrash() {
+        crashActive = false; isBusy = false;
+        clearInterval(crashTimer);
+        const btn = document.getElementById('crash-btn');
+        btn.innerText = "ВЗЛЕТАЕМ"; btn.classList.remove('btn-stop');
+        document.getElementById('mult').style.color = "var(--gold)";
+        document.getElementById('mult').innerText = "1.00x";
+        document.getElementById('rocket').style.bottom = "20px";
+        document.getElementById('rocket').style.left = "20px";
+        sync();
+    }
+
+    // --- ИНВЕНТАРЬ ---
     function renderInv() {
         const list = document.getElementById('inv-list');
-        list.innerHTML = inventory.length ? '' : '<p style="grid-column:1/4; color:#555;">Пусто</p>';
+        list.innerHTML = inventory.length ? '' : '<p style="grid-column:1/4; text-align:center; color:#555;">Пусто</p>';
         inventory.forEach((it, i) => {
             list.innerHTML += `
-                <div class="slot" style="min-width:unset; height:110px;" onclick="openSell(${i})">
+                <div class="slot" style="min-width:unset; height:120px;" onclick="openAction(${i})">
                     ${it.img === '⭐' ? '<div style="font-size:30px">⭐</div>' : `<img src="img/${it.img}" style="width:50px;">`}
                     <span style="font-size:9px;">${it.name}</span>
                 </div>`;
         });
     }
 
-    function openSell(idx) {
+    function openAction(idx) {
         const it = inventory[idx];
-        const price = Math.floor(it.price * 1.5);
-        const modal = document.getElementById('action-modal');
-        modal.style.display = 'flex';
+        const sellPrice = Math.floor(it.price * 1.5);
+        document.getElementById('action-modal').style.display = 'flex';
         document.getElementById('action-content').innerHTML = `
             <h3>${it.name}</h3>
-            <p>Цена продажи: ${price} ⭐</p>
-            <button class="btn-main" style="background:var(--green);" onclick="confirmSell(${idx}, ${price})">ПРОДАТЬ</button>
-            <button class="btn-main" style="background:#333; margin-top:10px; color:#fff;" onclick="closeAction()">ОТМЕНА</button>
+            <p>Цена продажи: ${sellPrice} ⭐</p>
+            <button class="btn-main" style="background:var(--green);" onclick="sellItem(${idx}, ${sellPrice})">ПРОДАТЬ</button>
+            <button class="btn-main" style="background:#333; margin-top:10px; color:#fff;" onclick="document.getElementById('action-modal').style.display='none'">ОТМЕНА</button>
         `;
     }
 
-    function confirmSell(idx, pr) {
+    function sellItem(idx, price) {
         inventory.splice(idx, 1);
-        balance += pr;
-        closeAction(); sync(); renderInv();
-    }
-
-    function closeAction() { document.getElementById('action-modal').style.display = 'none'; }
-
-    // --- КРАШ ---
-    let crashOn = false; let cMult = 1.0; let cTimer;
-    function startCrash() {
-        const bet = parseInt(document.getElementById('bet-amount').value);
-        if(!bet || bet > balance || bet <= 0 || (isRolling && !crashOn)) return;
-        const btn = document.getElementById('crash-btn');
-        if(crashOn) {
-            clearInterval(cTimer);
-            balance += Math.floor(bet * cMult);
-            btn.innerText = "ВЗЛЕТАЕМ"; btn.style.background = "";
-            crashOn = false; sync(); return;
-        }
-        balance -= bet; crashOn = true; cMult = 1.0; sync();
-        btn.innerText = "ЗАБРАТЬ"; btn.style.background = "var(--red)";
-        const boom = (Math.random() * 3 + 1.1).toFixed(2);
-        cTimer = setInterval(() => {
-            cMult += 0.01;
-            document.getElementById('multiplier').innerText = cMult.toFixed(2) + "x";
-            if(cMult >= boom) {
-                clearInterval(cTimer);
-                document.getElementById('multiplier').innerText = "CRASH!";
-                btn.innerText = "ВЗЛЕТАЕМ"; btn.style.background = "";
-                crashOn = false; sync();
-            }
-        }, 70);
+        balance += price;
+        document.getElementById('action-modal').style.display = 'none';
+        sync(); renderInv();
     }
 
     sync();
