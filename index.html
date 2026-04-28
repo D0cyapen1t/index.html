@@ -28,49 +28,41 @@
         .active { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* ИСТОРИЯ КРАША */
-        .crash-history {
-            display: flex; gap: 8px; overflow-x: auto; padding: 5px 0 15px;
-            scrollbar-width: none;
-        }
+        /* КРАШ ИСТОРИЯ */
+        .crash-history { display: flex; gap: 8px; overflow-x: auto; padding: 5px 0 15px; scrollbar-width: none; }
         .crash-history::-webkit-scrollbar { display: none; }
-        .history-item {
-            padding: 6px 12px; border-radius: 10px; background: var(--accent);
-            font-size: 12px; font-weight: 900; color: #aaa; flex-shrink: 0;
-        }
+        .history-item { padding: 6px 12px; border-radius: 10px; background: var(--accent); font-size: 12px; font-weight: 900; color: #aaa; flex-shrink: 0; }
         .history-item.high { color: var(--gold); background: rgba(255, 202, 40, 0.1); border: 1px solid rgba(255, 202, 40, 0.2); }
 
-        .game-card {
-            position: relative; border-radius: 24px; padding: 25px; min-height: 140px;
-            display: flex; flex-direction: column; justify-content: center; overflow: hidden;
-            cursor: pointer; transition: transform 0.1s; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 12px;
-        }
+        /* МЕНЮ И КАРТОЧКИ */
+        .game-card { position: relative; border-radius: 24px; padding: 25px; min-height: 140px; display: flex; flex-direction: column; justify-content: center; overflow: hidden; cursor: pointer; transition: transform 0.1s; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 12px; }
         .game-card:active { transform: scale(0.97); }
         .game-card h2 { margin: 0; font-size: 32px; font-weight: 900; z-index: 2; text-transform: uppercase; }
         .card-crash { background: linear-gradient(135deg, #1e1e96, #2d2db4); }
         .card-roulette { background: linear-gradient(135deg, #8b1313, #b91d1d); }
 
-        .crash-display {
-            background: radial-gradient(circle at center, #1a1f29 0%, #090a0d 100%);
-            border-radius: 30px; height: 220px; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; border: 2px solid var(--accent);
-            margin-bottom: 20px; position: relative; overflow: hidden;
-        }
-        #mult { font-size: 70px; font-weight: 900; color: var(--gold); text-shadow: 0 0 30px rgba(255, 202, 40, 0.4); z-index: 5; }
+        /* РУЛЕТКА */
+        .roulette-container { position: relative; width: 100%; height: 220px; background: #050608; border-radius: 28px; overflow: hidden; border: 2px solid var(--accent); }
+        .pointer { position: absolute; left: 50%; top: 0; width: 4px; height: 100%; background: var(--gold); z-index: 20; transform: translateX(-50%); box-shadow: 0 0 20px var(--gold); }
+        .tape { display: flex; align-items: center; height: 100%; }
 
+        /* СЛОТЫ */
+        .slot { min-width: 140px; width: 140px; height: 180px; display: flex; flex-direction: column; margin: 0 6px; border-radius: 24px; flex-shrink: 0; overflow: hidden; position: relative; background: var(--accent); }
+        .slot img { width: 100%; height: 100%; object-fit: cover; }
+        .slot-emoji { font-size: 60px; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .slot-label { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.85); padding: 10px 0; text-align: center; font-size: 11px; font-weight: 900; text-transform: uppercase; }
+
+        /* КНОПКИ */
         .btn-main { background: linear-gradient(135deg, #ffca28, #ff8f00); color: #000; border: none; width: 100%; padding: 20px; border-radius: 20px; font-weight: 900; font-size: 18px; text-transform: uppercase; cursor: pointer; }
         .btn-stop { background: linear-gradient(135deg, #ff4757, #ff6b81) !important; color: #fff !important; }
         .btn-back { background: none; border: none; color: #5b626e; width: 100%; font-weight: 700; margin-top: 15px; text-transform: uppercase; cursor: pointer; }
 
-        /* СЕТКА ИНВЕНТАРЯ */
-        .inv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .slot { min-width: 140px; height: 180px; display: flex; flex-direction: column; border-radius: 24px; overflow: hidden; position: relative; background: var(--accent); }
-        .slot img { width: 100%; height: 100%; object-fit: cover; }
-        .slot-label { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.85); padding: 10px 0; text-align: center; font-size: 11px; font-weight: 900; text-transform: uppercase; }
-
         .navbar { position: fixed; bottom: 0; width: 100%; height: 80px; background: #161920; display: flex; border-top: 1px solid var(--accent); padding-bottom: 10px; }
         .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #5b626e; cursor: pointer; }
         .nav-btn.active { color: var(--gold); }
+
+        .modal-overlay { display: none; position: fixed; inset:0; background: rgba(0,0,0,0.95); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-win { background: var(--card); padding: 40px 20px; border-radius: 35px; border: 2px solid var(--gold); text-align: center; width: 85%; }
     </style>
 </head>
 <body>
@@ -79,30 +71,48 @@
     <div class="balance-pill">⭐ <span id="balance-val">0</span></div>
 </div>
 
+<div id="win-modal" class="modal-overlay">
+    <div class="modal-win">
+        <h2 id="win-title" style="color:var(--gold); margin:0;">ВЫПАЛО!</h2>
+        <div id="win-content" style="padding: 25px 0; display: flex; justify-content: center;"></div>
+        <button class="btn-main" onclick="claimReward()">ЗАБРАТЬ</button>
+    </div>
+</div>
+
 <div id="tab-home" class="section active">
     <div class="game-card card-crash" onclick="nav('crash')">
-        <h2>Краш</h2>
-        <p>Множитель до х100</p>
+        <h2>Краш</h2><p>Множитель до х100</p>
     </div>
     <div class="game-card card-roulette" onclick="nav('roulette')">
-        <h2>Рулетка</h2>
-        <p>Выиграй NFT подарки</p>
+        <h2>Рулетка</h2><p>NFT Подарки</p>
     </div>
 </div>
 
 <div id="tab-crash" class="section">
     <div id="crash-history-bar" class="crash-history"></div>
-    <div class="crash-display">
-        <div id="mult">1.00x</div>
+    <div style="background: #090a0d; border-radius:30px; height:220px; display:flex; align-items:center; justify-content:center; border:2px solid var(--accent); margin-bottom:20px;">
+        <div id="mult" style="font-size:70px; font-weight:900; color:var(--gold);">1.00x</div>
     </div>
     <input type="number" id="bet-input" value="100" style="width:100%; padding:20px; background:#1c212a; border:2px solid var(--accent); color:#fff; border-radius:18px; margin-bottom:15px; text-align:center; font-size:20px; font-weight:900;">
     <button class="btn-main" id="crash-btn" onclick="handleCrash()">ПОЕХАЛИ!</button>
     <button class="btn-back" onclick="nav('home')">← НАЗАД</button>
 </div>
 
+<div id="tab-roulette" class="section">
+    <div class="roulette-container">
+        <div class="pointer"></div>
+        <div id="tape" class="tape"></div>
+    </div>
+    <div style="text-align:center; margin: 15px 0;">
+        <label style="font-weight:700; opacity:0.6;"><input type="checkbox" id="demo-mode"> ДЕМО-РЕЖИМ</label>
+    </div>
+    <button class="btn-main" id="spin-btn" onclick="startRoulette()">ОТКРЫТЬ (500 ⭐)</button>
+    <button class="btn-back" onclick="nav('home')">← НАЗАД</button>
+</div>
+
 <div id="tab-inv" class="section">
-    <h3 style="color:var(--gold); margin-bottom:20px; font-weight:900;">ИНВЕНТАРЬ (нажми для продажи)</h3>
-    <div id="inv-list" class="inv-grid"></div>
+    <h3 style="color:var(--gold); margin-bottom:20px; font-weight:900;">ИНВЕНТАРЬ</h3>
+    <div id="inv-list" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;"></div>
 </div>
 
 <nav class="navbar">
@@ -125,98 +135,118 @@
 
     let balance = parseInt(localStorage.getItem('user_bal')) || 10000;
     let inventory = JSON.parse(localStorage.getItem('user_inv')) || [];
-    let crashHistory = JSON.parse(localStorage.getItem('crash_history')) || [1.45, 2.10, 1.12, 5.40, 1.20];
+    let crashHistory = JSON.parse(localStorage.getItem('crash_history')) || [1.2, 2.5, 1.1, 4.0];
     let isBusy = false;
+    let currentPrize = null;
 
     function sync() {
         localStorage.setItem('user_bal', balance);
         localStorage.setItem('user_inv', JSON.stringify(inventory));
         localStorage.setItem('crash_history', JSON.stringify(crashHistory));
         document.getElementById('balance-val').innerText = balance.toLocaleString();
-        renderCrashHistory();
+        if(document.getElementById('crash-history-bar')) renderCrashHistory();
     }
 
     function nav(id) {
+        if(isBusy && id === 'home') return;
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById('tab-' + id).classList.add('active');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         if(id === 'inv') renderInv();
+        if(id === 'crash') renderCrashHistory();
     }
 
-    /* КРАШ ЛОГИКА */
-    let crashActive = false, crashVal = 1.0, crashTimer, currentBet = 0, boomPoint = 0;
+    function createSlotHTML(item) {
+        const icon = item.img === '⭐' ? `<div class="slot-emoji">⭐</div>` : `<img src="img/${item.img}">`;
+        return `<div class="slot" style="background: ${item.color}">${icon}<div class="slot-label">${item.name}</div></div>`;
+    }
 
+    /* РУЛЕТКА ФИКС */
+    function startRoulette() {
+        const isDemo = document.getElementById('demo-mode').checked;
+        if(!isDemo && (balance < 500 || isBusy)) return;
+        if(!isDemo) balance -= 500;
+        isBusy = true; sync();
+
+        const tape = document.getElementById('tape'), winIdx = 35;
+        currentPrize = gifts[Math.floor(Math.random() * gifts.length)];
+        tape.style.transition = 'none'; tape.style.transform = 'translateX(0)'; tape.innerHTML = '';
+
+        for(let i=0; i<45; i++) {
+            let it = (i === winIdx) ? currentPrize : gifts[Math.floor(Math.random() * (gifts.length-1))];
+            tape.innerHTML += createSlotHTML(it);
+        }
+        setTimeout(() => {
+            tape.style.transition = 'transform 7s cubic-bezier(0.15, 0, 0.05, 1)';
+            tape.style.transform = `translateX(-${(winIdx * 152) - (window.innerWidth / 2) + 76}px)`;
+        }, 50);
+        setTimeout(() => {
+            document.getElementById('win-modal').style.display = 'flex';
+            document.getElementById('win-content').innerHTML = createSlotHTML(currentPrize);
+            isBusy = false;
+        }, 7500);
+    }
+
+    function claimReward() {
+        if(!document.getElementById('demo-mode').checked) {
+            if(currentPrize.val) balance += currentPrize.val; else inventory.push(currentPrize);
+        }
+        document.getElementById('win-modal').style.display = 'none'; sync();
+    }
+
+    /* КРАШ */
+    let crashActive = false, crashVal = 1.0, crashTimer, currentBet = 0;
     function renderCrashHistory() {
         const bar = document.getElementById('crash-history-bar');
-        if(!bar) return;
-        bar.innerHTML = crashHistory.map(val => 
-            `<div class="history-item ${val >= 1.5 ? 'high' : ''}">${val.toFixed(2)}x</div>`
-        ).join('');
+        bar.innerHTML = crashHistory.map(v => `<div class="history-item ${v >= 1.5 ? 'high' : ''}">${v.toFixed(2)}x</div>`).join('');
     }
 
     function handleCrash() {
         const btn = document.getElementById('crash-btn');
-        const multDisplay = document.getElementById('mult');
-        
         if (crashActive) { 
             balance += Math.floor(currentBet * crashVal); 
-            addHistory(crashVal);
-            stopCrash(true); 
-            return; 
+            crashHistory.unshift(crashVal); if(crashHistory.length > 10) crashHistory.pop();
+            stopCrash(true); return; 
         }
-
         const bet = parseInt(document.getElementById('bet-input').value);
-        if(!bet || bet > balance || bet < 1) return;
-
+        if(!bet || bet > balance) return;
         currentBet = bet; balance -= bet; crashActive = true; sync();
         btn.classList.add('btn-stop');
-        
-        boomPoint = (1.0 + Math.random() * 4).toFixed(2);
+        let boom = (1.05 + Math.random() * 4).toFixed(2);
         crashTimer = setInterval(() => {
             crashVal += 0.01;
-            multDisplay.innerText = crashVal.toFixed(2) + "x";
-            btn.innerText = `ЗАБРАТЬ ${Math.floor(currentBet * crashVal)} ⭐`; 
-            if(crashVal >= boomPoint) {
-                addHistory(crashVal);
+            document.getElementById('mult').innerText = crashVal.toFixed(2) + "x";
+            btn.innerText = `ЗАБРАТЬ ${Math.floor(currentBet * crashVal)} ⭐`;
+            if(crashVal >= boom) {
+                crashHistory.unshift(crashVal); if(crashHistory.length > 10) crashHistory.pop();
                 stopCrash(false);
             }
         }, 50);
     }
 
-    function addHistory(val) {
-        crashHistory.unshift(val);
-        if(crashHistory.length > 10) crashHistory.pop();
-        sync();
-    }
-
     function stopCrash(win) {
         clearInterval(crashTimer);
         const m = document.getElementById('mult');
-        const btn = document.getElementById('crash-btn');
         m.innerText = win ? "ВЗЯТО!" : "BOOM!";
         m.style.color = win ? "var(--green)" : "var(--red)";
-        btn.innerText = "ПОЕХАЛИ!";
-        btn.classList.remove('btn-stop');
+        document.getElementById('crash-btn').innerText = "ПОЕХАЛИ!";
+        document.getElementById('crash-btn').classList.remove('btn-stop');
         crashActive = false;
         setTimeout(() => {
             m.innerText = "1.00x"; m.style.color = "var(--gold)";
-            crashVal = 1.0; 
+            crashVal = 1.0; sync();
         }, 2000);
     }
 
     function renderInv() {
         const list = document.getElementById('inv-list');
-        list.innerHTML = inventory.length ? '' : '<p style="grid-column:1/3; opacity:0.3; text-align:center;">Пусто</p>';
+        list.innerHTML = inventory.length ? '' : '<p style="grid-column:1/3;text-align:center;opacity:0.5;">ПУСТО</p>';
         inventory.forEach((it, i) => {
             const div = document.createElement('div');
-            div.className = 'slot';
-            div.style.background = it.color;
-            div.innerHTML = `<img src="img/${it.img}"><div class="slot-label">${it.name}</div>`;
+            div.innerHTML = createSlotHTML(it);
             div.onclick = () => {
-                let price = Math.floor(it.price * 0.8);
-                if(confirm(`Продать за ${price} ⭐?`)) {
-                    balance += price; inventory.splice(i, 1); sync(); renderInv();
-                }
+                let p = Math.floor(it.price * 0.8);
+                if(confirm(`Продать за ${p} ⭐?`)) { balance += p; inventory.splice(i,1); sync(); renderInv(); }
             };
             list.appendChild(div);
         });
