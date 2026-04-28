@@ -148,7 +148,7 @@
 
     function openGame(name) { nav(name); }
 
-    /* CRASH LOGIC */
+    /* CRASH */
     let crashActive = false, crashVal = 1.0, crashTimer, currentBet = 0;
     function renderCrashHistory() {
         const bar = document.getElementById('crash-history-bar');
@@ -171,11 +171,6 @@
                 crashVal += 0.01;
                 m.innerText = crashVal.toFixed(2) + "x";
                 btn.innerText = `ЗАБРАТЬ ${Math.floor(currentBet * crashVal)} ⭐`;
-                if (crashVal >= 100.00) {
-                    crashVal = 100.00;
-                    if (Math.random() < 0.5) { balance += currentBet * 100; pushHistory(100); stopCrash(true); }
-                    else { pushHistory(100); stopCrash(false); }
-                }
             }
         }, 50);
     }
@@ -192,35 +187,44 @@
         setTimeout(() => { m.innerText = "1.00x"; m.style.color = "var(--gold)"; crashVal = 1.0; sync(); }, 2000);
     }
 
-    /* ROULETTE LOGIC */
+    /* ROULETTE FIXED */
     function startRoulette() {
         const isDemo = document.getElementById('demo-mode').checked;
         if(!isDemo && (balance < 500 || isBusy)) return;
         if(!isDemo) balance -= 500;
         isBusy = true; sync();
 
-        const tape = document.getElementById('tape'), winIdx = 35;
+        const tape = document.getElementById('tape');
+        const winIdx = 35; 
+        
+        // КЛЮЧЕВОЙ ФИКС: выбираем ПРИЗ один раз в начале
         currentPrize = gifts[Math.floor(Math.random() * gifts.length)];
         
-        tape.style.transition = 'none'; tape.style.transform = 'translateX(0)'; tape.innerHTML = '';
+        tape.style.transition = 'none';
+        tape.style.transform = 'translateX(0)';
+        tape.innerHTML = '';
 
+        // Генерируем ленту: на 35 позицию ставим наш заранее выбранный currentPrize
         for(let i = 0; i < 45; i++) {
-            let it = (i === winIdx) ? currentPrize : gifts[Math.floor(Math.random() * gifts.length)];
-            const icon = it.img === '⭐' ? `<div style="font-size:40px;line-height:150px;text-align:center">⭐</div>` : `<img src="img/${it.img}">`;
-            tape.innerHTML += `<div class="slot">${icon}<div class="slot-label">${it.name}</div></div>`;
+            let itemData = (i === winIdx) ? currentPrize : gifts[Math.floor(Math.random() * gifts.length)];
+            const icon = itemData.img === '⭐' ? `<div style="font-size:40px;line-height:150px;text-align:center">⭐</div>` : `<img src="img/${itemData.img}">`;
+            tape.innerHTML += `<div class="slot">${icon}<div class="slot-label">${itemData.name}</div></div>`;
         }
 
         setTimeout(() => {
-            const slotWidth = 152;
-            const stopPos = (winIdx * slotWidth) - (window.innerWidth / 2) + (slotWidth / 2);
+            const slotTotalWidth = 152; // 140px + 6px*2 margin
+            const center = window.innerWidth / 2;
+            // Рассчитываем точное смещение до 35-го слота
+            const finalShift = (winIdx * slotTotalWidth) - center + (slotTotalWidth / 2);
+            
             tape.style.transition = 'transform 7s cubic-bezier(0.15, 0, 0.05, 1)';
-            tape.style.transform = `translateX(-${stopPos}px)`;
+            tape.style.transform = `translateX(-${finalShift}px)`;
         }, 50);
 
         setTimeout(() => {
             document.getElementById('win-modal').style.display = 'flex';
             const icon = currentPrize.img === '⭐' ? `<div style="font-size:40px;">⭐</div>` : `<img src="img/${currentPrize.img}">`;
-            document.getElementById('win-content').innerHTML = `<div class="slot">${icon}</div>`;
+            document.getElementById('win-content').innerHTML = `<div class="slot" style="background:var(--card); border:1px solid var(--gold)">${icon}<div class="slot-label">${currentPrize.name}</div></div>`;
             isBusy = false;
         }, 7500);
     }
