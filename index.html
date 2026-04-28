@@ -11,13 +11,13 @@
             --grad-blue: linear-gradient(135deg, #3a1cbb 0%, #5611d6 100%);
             --grad-red: linear-gradient(135deg, #b01a1a 0%, #e32c2c 100%);
             --text-main: #ffffff; --text-sub: #8e8e93;
+            --red: #ff3b30; --green: #4cd964;
         }
         body { 
             background: var(--bg); color: var(--text-main); font-family: 'Montserrat', sans-serif; 
             margin: 0; padding: 0; overflow: hidden; user-select: none;
         }
 
-        /* Header */
         .header { 
             display: flex; justify-content: space-between; align-items: center; 
             padding: 15px 20px; background: #000; position: sticky; top: 0; z-index: 100;
@@ -28,36 +28,29 @@
         }
         .balance-box span { color: var(--accent); }
 
-        /* Sections */
         .section { display: none; height: calc(100vh - 150px); padding: 15px; overflow-y: auto; box-sizing: border-box; }
         .active { display: block; }
 
-        /* Menu Cards */
-        .menu-container { display: flex; flex-direction: column; gap: 15px; }
-        .mode-card {
-            border-radius: 24px; padding: 25px; position: relative; overflow: hidden;
-            display: flex; flex-direction: column; min-height: 120px; justify-content: center;
-            cursor: pointer;
+        /* Crash */
+        .crash-container {
+            background: #0a0a0a; border-radius: 24px; height: 240px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; overflow: hidden; border: 1px solid #1c1c1e; margin-bottom: 20px;
         }
-        .mode-card.crash { background: var(--grad-blue); }
-        .mode-card.roulette { background: var(--grad-red); }
-        .mode-card h2 { margin: 0; font-size: 24px; font-weight: 800; }
-        .mode-card p { margin: 5px 0 0; font-size: 13px; opacity: 0.8; max-width: 60%; }
-        .mode-card .icon { position: absolute; right: 15px; bottom: 10px; font-size: 60px; opacity: 0.9; }
+        #crash-mult { font-size: 64px; font-weight: 900; color: var(--accent); z-index: 10; }
+        #rocket { position: absolute; bottom: 20px; left: 20px; font-size: 40px; z-index: 5; }
+        
+        .history-bar { display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; min-height: 25px; }
+        .hist-dot { padding: 4px 10px; border-radius: 8px; background: var(--card-bg); font-size: 12px; font-weight: 700; border: 1px solid #2c2c2e; }
 
-        /* Roulette Core */
+        /* Roulette */
         .roulette-wrapper {
             position: relative; width: 100%; height: 180px; background: #000; 
-            border-radius: 20px; overflow: hidden; margin-bottom: 20px; border: 1px solid #2c2c2e;
+            border-radius: 20px; overflow: hidden; margin-bottom: 15px; border: 1px solid #2c2c2e;
         }
-        .pointer { 
-            position: absolute; left: 50%; top: 0; width: 4px; height: 100%; 
-            background: var(--accent); z-index: 50; transform: translateX(-50%);
-            box-shadow: 0 0 15px rgba(255, 202, 40, 0.4);
-        }
+        .pointer { position: absolute; left: 50%; top: 0; width: 4px; height: 100%; background: var(--accent); z-index: 50; transform: translateX(-50%); box-shadow: 0 0 15px var(--accent); }
         .tape { display: flex; align-items: center; height: 100%; will-change: transform; transition: transform 7s cubic-bezier(0.1, 0, 0.05, 1); }
         
-        /* Universal Slot Style */
         .slot { 
             min-width: 140px; width: 140px; height: 150px; margin: 0 5px; 
             border-radius: 18px; background: var(--card-bg); overflow: hidden; 
@@ -65,23 +58,23 @@
             border: 1px solid #2c2c2e; flex-shrink: 0;
         }
         .slot img { width: 100%; height: 100%; object-fit: cover; position: absolute; }
-        .slot-emoji { font-size: 50px; position: relative; z-index: 2; }
-        .slot span { 
-            position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.75); 
-            font-size: 10px; padding: 8px 0; text-align: center; font-weight: 700; z-index: 3;
+        .slot span { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.8); font-size: 10px; padding: 8px 0; text-align: center; font-weight: 700; }
+
+        .demo-toggle {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            margin-bottom: 15px; padding: 10px; background: var(--card-bg); border-radius: 12px;
+            color: var(--text-sub); font-size: 13px; font-weight: 600;
         }
 
-        /* Profile Grid */
-        .inv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding-bottom: 20px; }
-
-        /* UI Elements */
+        /* Nav & Buttons */
         .btn-action { background: #fff; color: #000; border: none; width: 100%; padding: 18px; border-radius: 16px; font-weight: 800; font-size: 16px; text-transform: uppercase; margin-bottom: 10px; cursor: pointer; }
+        .btn-stop { background: var(--red) !important; color: #fff !important; }
+
         .navbar { position: fixed; bottom: 0; width: 100%; height: 75px; background: #121212; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #2c2c2e; padding-bottom: 10px; }
         .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-sub); gap: 4px; font-size: 11px; font-weight: 600; cursor: pointer; }
         .nav-item.active { color: #fff; }
 
-        /* Modal */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; align-items: center; justify-content: center; }
         .modal-content { background: var(--card-bg); width: 80%; padding: 30px; border-radius: 24px; text-align: center; border: 1px solid #333; }
     </style>
 </head>
@@ -93,18 +86,29 @@
 </div>
 
 <div id="tab-home" class="section active">
-    <div class="menu-container">
-        <div class="mode-card crash" onclick="nav('crash')">
-            <h2>Краш</h2>
-            <p>Успейте забрать выигрыш до взрыва</p>
-            <div class="icon">🚀</div>
+    <div style="display: flex; flex-direction: column; gap: 15px;">
+        <div class="mode-card" style="background: var(--grad-blue); border-radius: 24px; padding: 25px; position: relative; height: 120px; display: flex; flex-direction: column; justify-content: center;" onclick="nav('crash')">
+            <h2 style="margin:0">Краш</h2>
+            <p style="margin:5px 0 0; opacity:0.8; font-size:13px;">Успей забрать до взрыва</p>
+            <div style="position:absolute; right:15px; bottom:10px; font-size:60px; opacity:0.8;">🚀</div>
         </div>
-        <div class="mode-card roulette" onclick="nav('roulette')">
-            <h2>Рулетка</h2>
-            <p>Крутите и получайте призы</p>
-            <div class="icon">👜</div>
+        <div class="mode-card" style="background: var(--grad-red); border-radius: 24px; padding: 25px; position: relative; height: 120px; display: flex; flex-direction: column; justify-content: center;" onclick="nav('roulette')">
+            <h2 style="margin:0">Рулетка</h2>
+            <p style="margin:5px 0 0; opacity:0.8; font-size:13px;">Крути и выигрывай NFT</p>
+            <div style="position:absolute; right:15px; bottom:10px; font-size:60px; opacity:0.8;">👜</div>
         </div>
     </div>
+</div>
+
+<div id="tab-crash" class="section">
+    <div id="crash-history" class="history-bar"></div>
+    <div class="crash-container">
+        <div id="crash-mult">1.00x</div>
+        <div id="rocket">🚀</div>
+    </div>
+    <input type="number" id="crash-bet" value="100" style="width:100%; padding:18px; border-radius:15px; border:none; background:var(--card-bg); color:white; text-align:center; margin-bottom:15px; font-size:18px; font-weight:800;">
+    <button class="btn-action" id="crash-btn" onclick="handleCrash()" style="background:var(--accent);">ИГРАТЬ</button>
+    <button class="btn-action" style="background:#333; color:#fff;" onclick="nav('home')">МЕНЮ</button>
 </div>
 
 <div id="tab-roulette" class="section">
@@ -112,13 +116,16 @@
         <div class="pointer"></div>
         <div id="tape" class="tape"></div>
     </div>
-    <button class="btn-action" id="spin-btn" onclick="startSpin()">ОТКРЫТЬ (500 ⭐)</button>
-    <button class="btn-action" style="background:#333; color:#fff;" onclick="nav('home')">НАЗАД</button>
+    <div class="demo-toggle">
+        <input type="checkbox" id="demo-mode"> <label for="demo-mode">ДЕМО-РЕЖИМ (БЕЗ СПИСАНИЯ)</label>
+    </div>
+    <button class="btn-action" id="spin-btn" onclick="startSpin()" style="background:#fff;">ОТКРЫТЬ (500 ⭐)</button>
+    <button class="btn-action" style="background:#333; color:#fff;" onclick="nav('home')">МЕНЮ</button>
 </div>
 
 <div id="tab-profile" class="section">
-    <h2 style="margin: 0 0 20px 0;">Инвентарь</h2>
-    <div id="inv-list" class="inv-grid"></div>
+    <h2 style="margin-bottom:20px;">Инвентарь</h2>
+    <div id="inv-list" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;"></div>
 </div>
 
 <nav class="navbar">
@@ -128,8 +135,8 @@
 
 <div id="win-modal" class="modal">
     <div class="modal-content">
-        <h2 style="margin-top:0; color:var(--accent);">ВЫИГРЫШ!</h2>
-        <div id="win-item-box" style="margin: 20px 0; display:flex; justify-content:center;"></div>
+        <h2 id="win-txt" style="color:var(--accent);">ВЫПАЛО!</h2>
+        <div id="win-box" style="margin:20px 0; display:flex; justify-content:center;"></div>
         <button class="btn-action" onclick="closeModal()">ЗАБРАТЬ</button>
     </div>
 </div>
@@ -137,8 +144,6 @@
 <script>
     const items = [
         {name: 'UFC STRICE', img: 'UFC.png', price: 1450},
-        {name: 'Chill Flame', img: 'Chill.png', price: 450},
-        {name: 'Low Rider', img: 'Low.png', price: 4000},
         {name: 'Lunar Snake', img: 'Snake.png', price: 300},
         {name: 'Eternal Rose', img: 'Rose.png', price: 2300},
         {name: 'Diamond Ring', img: 'Ring.png', price: 2500},
@@ -149,84 +154,113 @@
 
     let bal = parseInt(localStorage.getItem('bal')) || 0; 
     let inv = JSON.parse(localStorage.getItem('inv')) || [];
+    let crashHistory = JSON.parse(localStorage.getItem('crash_h')) || [];
     let isBusy = false;
 
     function sync() {
         document.getElementById('bal-display').innerText = bal.toLocaleString();
         localStorage.setItem('bal', bal);
         localStorage.setItem('inv', JSON.stringify(inv));
+        localStorage.setItem('crash_h', JSON.stringify(crashHistory));
     }
 
     function nav(id) {
-        if(isBusy) return;
+        if(isBusy && id !== 'crash') return;
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById('tab-' + id).classList.add('active');
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById('nav-' + (id === 'profile' ? 'profile' : 'home')).classList.add('active');
         if(id === 'profile') renderInv();
+        if(id === 'crash') renderCrashHistory();
     }
 
+    // --- CRASH ---
+    let crashActive = false, crashMult = 1.0, crashTimer, currentBet = 0;
+    function handleCrash() {
+        const btn = document.getElementById('crash-btn');
+        if (crashActive) { 
+            bal += Math.floor(currentBet * crashMult);
+            finishGame(crashMult, true); return;
+        }
+        let bet = parseInt(document.getElementById('crash-bet').value);
+        if(!bet || bet > bal || bet < 10) return;
+        bal -= bet; currentBet = bet; isBusy = true; crashActive = true; sync();
+        btn.innerText = "ЗАБРАТЬ"; btn.classList.add('btn-stop');
+        let boom = Math.random() < 0.4 ? 1.00 : (1.1 + Math.random() * 4).toFixed(2);
+        if(boom == 1.00) { finishGame(1.00, false); return; }
+        crashTimer = setInterval(() => {
+            crashMult += 0.01;
+            document.getElementById('crash-mult').innerText = crashMult.toFixed(2) + "x";
+            btn.innerText = `ЗАБРАТЬ (${Math.floor(currentBet * crashMult)})`;
+            if(crashMult >= boom) finishGame(boom, false);
+        }, 80);
+    }
+    function finishGame(v, win) {
+        clearInterval(crashTimer); crashActive = false; isBusy = false;
+        crashHistory.push(parseFloat(v));
+        document.getElementById('crash-mult').innerText = win ? v.toFixed(2)+"x" : "BOOM!";
+        document.getElementById('crash-mult').style.color = win ? "var(--green)" : "var(--red)";
+        document.getElementById('crash-btn').innerText = "ИГРАТЬ";
+        document.getElementById('crash-btn').classList.remove('btn-stop');
+        setTimeout(() => {
+            document.getElementById('crash-mult').innerText = "1.00x";
+            document.getElementById('crash-mult').style.color = "var(--accent)";
+            crashMult = 1.0; sync();
+        }, 2000);
+    }
+    function renderCrashHistory() {
+        const h = document.getElementById('crash-history'); h.innerHTML = '';
+        crashHistory.slice(-5).reverse().forEach(v => h.innerHTML += `<div class="hist-dot">${v.toFixed(2)}x</div>`);
+    }
+
+    // --- ROULETTE ---
+    let isDemo = false;
     function startSpin() {
-        if(bal < 500 || isBusy) return;
-        bal -= 500; isBusy = true; sync();
+        isDemo = document.getElementById('demo-mode').checked;
+        if(!isDemo && (bal < 500 || isBusy)) return;
+        if(!isDemo) bal -= 500;
+        isBusy = true; sync();
 
-        const tape = document.getElementById('tape');
-        const slotWidth = 150; 
-        const winIdx = 40;
+        const tape = document.getElementById('tape'), slotWidth = 150, winIdx = 40;
         const prize = items[Math.floor(Math.random() * items.length)];
-        
-        tape.style.transition = 'none';
-        tape.style.transform = 'translateX(0)';
-        tape.innerHTML = '';
+        tape.style.transition = 'none'; tape.style.transform = 'translateX(0)'; tape.innerHTML = '';
 
-        // Генерируем ленту
         for(let i = 0; i < 55; i++) {
             let it = (i === winIdx) ? prize : items[Math.floor(Math.random() * items.length)];
-            const content = it.img === '⭐' ? `<div class="slot-emoji">⭐</div>` : `<img src="img/${it.img}">`;
+            const content = it.img === '⭐' ? `<div style="font-size:50px">⭐</div>` : `<img src="img/${it.img}">`;
             tape.innerHTML += `<div class="slot">${content}<span>${it.name}</span></div>`;
         }
 
         setTimeout(() => {
             tape.style.transition = 'transform 7s cubic-bezier(0.1, 0, 0.05, 1)';
-            const center = window.innerWidth / 2;
-            const finalPos = (winIdx * slotWidth) + (slotWidth / 2) - center;
-            tape.style.transform = `translateX(-${finalPos}px)`;
+            tape.style.transform = `translateX(-${(winIdx * slotWidth) + 75 - (window.innerWidth / 2)}px)`;
         }, 50);
 
         setTimeout(() => {
-            if(prize.val) bal += prize.val; else inv.push(prize);
-            showWin(prize);
+            if(!isDemo) { if(prize.val) bal += prize.val; else inv.push(prize); }
+            document.getElementById('win-modal').style.display = 'flex';
+            document.getElementById('win-txt').innerText = isDemo ? "ДЕМО-ВЫИГРЫШ" : "ВЫИГРЫШ!";
+            document.getElementById('win-box').innerHTML = `<div class="slot">${prize.img==='⭐'?'⭐':`<img src="img/${prize.img}">`}<span>${prize.name}</span></div>`;
             isBusy = false; sync();
         }, 7200);
     }
-
-    function showWin(it) {
-        document.getElementById('win-modal').style.display = 'flex';
-        const content = it.img === '⭐' ? `<div class="slot-emoji">⭐</div>` : `<img src="img/${it.img}">`;
-        document.getElementById('win-item-box').innerHTML = `<div class="slot" style="margin:0;">${content}<span>${it.name}</span></div>`;
-    }
-
     function closeModal() { document.getElementById('win-modal').style.display = 'none'; }
 
+    // --- PROFILE & SELL ---
     function renderInv() {
         const list = document.getElementById('inv-list');
-        list.innerHTML = inv.length ? '' : '<p style="grid-column: 1/3; opacity: 0.4; text-align:center; padding: 40px 0;">Инвентарь пуст</p>';
+        list.innerHTML = inv.length ? '' : '<p style="grid-column:1/3;text-align:center;opacity:0.5;">Пусто</p>';
         inv.forEach((it, idx) => {
-            const content = it.img === '⭐' ? `<div class="slot-emoji">⭐</div>` : `<img src="img/${it.img}">`;
-            list.innerHTML += `
-                <div class="slot" style="width: 100%; margin: 0;" onclick="sellItem(${idx})">
-                    ${content}
-                    <span>${it.name}</span>
-                </div>`;
+            list.innerHTML += `<div class="slot" style="width:100%;margin:0;" onclick="sell(${idx})">${it.img==='⭐'?'⭐':`<img src="img/${it.img}">`}<span>${it.name}</span></div>`;
         });
     }
-
-    function sellItem(idx) {
+    function sell(idx) {
         const item = inv[idx];
-        if(confirm(`Продать ${item.name} за ${item.price} ⭐?`)) {
-            bal += item.price;
-            inv.splice(idx, 1);
-            sync(); renderInv();
+        if(confirm(`Продать за ${item.price} ⭐?`)) {
+            bal += item.price; // Добавляем цену к балансу
+            inv.splice(idx, 1); // Удаляем из инвентаря
+            sync(); // Сохраняем и обновляем экран
+            renderInv(); // Перерисовываем список
         }
     }
 
