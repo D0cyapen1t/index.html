@@ -8,7 +8,7 @@
     <style>
         :root { 
             --gold: #ffca28; --bg: #0b0d10; --card: #161920; --accent: #232731; 
-            --red: #ff4757; --green: #2ed573;
+            --red: #ff4757; --green: #2ed573; --blue: #3742fa;
         }
         body { 
             background: var(--bg); color: #fff; font-family: 'Montserrat', sans-serif; 
@@ -39,7 +39,7 @@
             background: var(--gold); z-index: 20; transform: translateX(-50%);
             box-shadow: 0 0 25px var(--gold);
         }
-        .tape { display: flex; align-items: center; height: 100%; will-change: transform; transition: transform 8s cubic-bezier(0.15, 0, 0.05, 1); }
+        .tape { display: flex; align-items: center; height: 100%; will-change: transform; transition: transform 8s cubic-bezier(0.1, 0, 0.05, 1); }
         .slot { 
             min-width: 130px; width: 130px; height: 150px; display: flex; flex-direction: column; 
             align-items: center; justify-content: center; background: linear-gradient(145deg, #1c212a, #161920); 
@@ -48,6 +48,14 @@
         .slot img { width: 75px; height: 75px; object-fit: contain; }
         .slot-emoji { font-size: 50px; }
         .slot span { font-size: 10px; font-weight: 700; margin-top: 12px; color: #7f8c8d; text-align: center; }
+
+        .demo-box {
+            display: flex; align-items: center; justify-content: center; 
+            gap: 10px; margin-top: 15px; background: var(--card); padding: 12px; border-radius: 18px;
+            border: 1px solid var(--accent);
+        }
+        .demo-box input { width: 20px; height: 20px; accent-color: var(--gold); cursor: pointer; }
+        .demo-box label { font-size: 14px; font-weight: 700; color: #7f8c8d; cursor: pointer; }
 
         .crash-area { 
             background: #090a0d; border-radius: 30px; height: 260px; display: flex; 
@@ -85,9 +93,9 @@
 
 <div id="win-modal" class="modal-overlay">
     <div class="modal-win">
-        <h2 style="color:var(--gold); margin:0;">ВЫПАЛО!</h2>
+        <h2 id="win-title" style="color:var(--gold); margin:0;">ВЫПАЛО!</h2>
         <div id="win-content" style="padding: 30px 0;"></div>
-        <button class="btn-main" onclick="claimReward()">ЗАБРАТЬ</button>
+        <button class="btn-main" onclick="claimReward()">ЗАКРЫТЬ</button>
     </div>
 </div>
 
@@ -100,7 +108,11 @@
         <div class="pointer"></div>
         <div id="tape" class="tape"></div>
     </div>
-    <button class="btn-main" id="spin-btn" style="margin-top:30px;" onclick="startRoulette()">ОТКРЫТЬ (500 ⭐)</button>
+    <div class="demo-box">
+        <input type="checkbox" id="demo-mode" onchange="sync()">
+        <label for="demo-mode">ДЕМО-РЕЖИМ</label>
+    </div>
+    <button class="btn-main" id="spin-btn" style="margin-top:15px;" onclick="startRoulette()">ОТКРЫТЬ (500 ⭐)</button>
 </div>
 
 <div id="tab-crash" class="section">
@@ -108,7 +120,7 @@
         <div id="mult">1.00x</div>
         <div id="rocket">🚀</div>
     </div>
-    <input type="number" id="bet-input" style="width:100%; padding:20px; background:#1c212a; border:2px solid var(--accent); color:#fff; border-radius:18px; margin-bottom:15px; text-align:center; font-size: 18px;" placeholder="Мин. 100 ⭐">
+    <input type="number" id="bet-input" style="width:100%; padding:20px; box-sizing: border-box; background:#1c212a; border:2px solid var(--accent); color:#fff; border-radius:18px; margin-bottom:15px; text-align:center; font-size: 18px;" placeholder="Ставка (Мин. 100)">
     <button class="btn-main" id="crash-btn" onclick="handleCrash()">ПОЕХАЛИ!</button>
 </div>
 
@@ -139,6 +151,31 @@
         {id: 's400', name: '400 Stars', img: '⭐', val: 400, rarity: 5}
     ];
 
+    let balance = parseInt(localStorage.getItem('user_bal'));
+    if (isNaN(balance)) balance = 1000;
+
+    let inventory = JSON.parse(localStorage.getItem('user_inv')) || [];
+    let isBusy = false;
+    let currentPrize = null;
+    let isDemoActive = false;
+
+    function sync() {
+        localStorage.setItem('user_bal', balance);
+        localStorage.setItem('user_inv', JSON.stringify(inventory));
+        document.getElementById('balance-val').innerText = balance.toLocaleString();
+        const demo = document.getElementById('demo-mode').checked;
+        document.getElementById('spin-btn').disabled = (balance < 500 && !demo) || isBusy;
+    }
+
+    function nav(id) {
+        if(isBusy && id !== 'crash') return;
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById('tab-' + id).classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        if(id === 'inv') renderInv();
+    }
+
     function getRandomItem() {
         const total = items.reduce((acc, it) => acc + it.rarity, 0);
         let rand = Math.random() * total;
@@ -149,50 +186,28 @@
         return items[0];
     }
 
-    let balance = parseInt(localStorage.getItem('user_bal')) || 1000;
-    let inventory = JSON.parse(localStorage.getItem('user_inv')) || [];
-    let isBusy = false;
-    let currentPrize = null;
-
-    function sync() {
-        localStorage.setItem('user_bal', balance);
-        localStorage.setItem('user_inv', JSON.stringify(inventory));
-        document.getElementById('balance-val').innerText = balance.toLocaleString();
-        document.getElementById('spin-btn').disabled = (balance < 500 || isBusy);
-    }
-
-    function nav(id) {
-        if(isBusy && !document.getElementById('tab-crash').classList.contains('active')) return;
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById('tab-' + id).classList.add('active');
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        event.currentTarget.classList.add('active');
-        if(id === 'inv') renderInv();
-    }
-
     function startRoulette() {
-        if(balance < 500 || isBusy) return;
-        balance -= 500; isBusy = true; sync();
+        const demo = document.getElementById('demo-mode').checked;
+        if(!demo && (balance < 500 || isBusy)) return;
+        
+        if(!demo) balance -= 500; 
+        isDemoActive = demo;
+        isBusy = true; 
+        sync();
         
         const tape = document.getElementById('tape');
-        const slotWidth = 140; // 130px + 10px margin
-        const winIdx = 45; 
+        tape.style.transition = 'none'; tape.style.transform = 'translateX(0)'; tape.innerHTML = '';
         
+        const slotWidth = 140; 
+        const winIdx = 45; 
         currentPrize = getRandomItem();
         
-        // Очистка и сброс ленты
-        tape.style.transition = 'none';
-        tape.style.transform = 'translateX(0)';
-        tape.innerHTML = '';
-        
-        // Генерация ленты
-        for(let i=0; i<65; i++) {
+        for(let i=0; i<60; i++) {
             let it = (i === winIdx) ? currentPrize : getRandomItem();
             const content = it.img === '⭐' ? `<div class="slot-emoji">⭐</div>` : `<img src="img/${it.img}">`;
             tape.innerHTML += `<div class="slot">${content}<span>${it.name}</span></div>`;
         }
         
-        // Запуск прокрутки
         setTimeout(() => {
             tape.style.transition = 'transform 8s cubic-bezier(0.1, 0, 0.05, 1)';
             const center = window.innerWidth / 2;
@@ -202,46 +217,62 @@
 
         setTimeout(() => {
             document.getElementById('win-modal').style.display = 'flex';
-            document.getElementById('win-content').innerHTML = currentPrize.img === '⭐' ? '<div style="font-size:60px">⭐</div>' : `<img src="img/${currentPrize.img}" width="140"><h3>${currentPrize.name}</h3>`;
+            document.getElementById('win-title').innerText = isDemoActive ? "ДЕМО-ВЫИГРЫШ" : "ВЫПАЛО!";
+            document.getElementById('win-content').innerHTML = currentPrize.img === '⭐' ? '<div style="font-size:60px">⭐</div>' : `<img src="img/${currentPrize.img}" width="140">` + `<h3>${currentPrize.name}</h3>`;
             if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         }, 8200);
     }
 
     function claimReward() {
-        if(currentPrize.val) balance += currentPrize.val; else inventory.push(currentPrize);
+        if(!isDemoActive && currentPrize) {
+            if(currentPrize.val) balance += currentPrize.val; 
+            else inventory.push(currentPrize);
+        }
         document.getElementById('win-modal').style.display = 'none';
-        isBusy = false; sync();
+        isBusy = false; 
+        currentPrize = null;
+        sync();
     }
 
-    // --- CRASH LOGIC (FIXED) ---
+    // --- CRASH LOGIC (45% BOOM + SLOWER MULT) ---
     let crashActive = false; let crashVal = 1.0; let crashTimer; let currentBet = 0;
+
     function handleCrash() {
         const btn = document.getElementById('crash-btn');
         if (crashActive) {
-            balance += Math.floor(currentBet * crashVal);
+            const winAmount = Math.floor(currentBet * crashVal);
+            balance += winAmount;
             clearInterval(crashTimer); 
             resetCrash(); 
             return;
         }
         const bet = parseInt(document.getElementById('bet-input').value);
-        if(!bet || bet < 100 || bet > balance) return;
+        if(!bet || bet < 100 || bet > balance) return alert("Ошибка ставки!");
+        
         currentBet = bet; balance -= bet; isBusy = true; crashActive = true; sync();
-        btn.innerText = "ЗАБРАТЬ"; btn.classList.add('btn-stop');
-        const boom = (Math.random() < 0.25) ? 1.00 : (Math.random() * 2.5 + 1.05).toFixed(2);
-        if(boom <= 1.00) { finishCrash(); return; }
+        
+        const isInstant = Math.random() < 0.45; // 45% шанс взрыва на 1.00
+        const boom = isInstant ? 1.00 : (Math.random() * 6 + 1.1).toFixed(2);
+        
+        if(isInstant) { finishCrash(); return; }
+        
         crashTimer = setInterval(() => {
-            crashVal += 0.02; 
+            crashVal += 0.01; // Замедленный прирост (был 0.02)
+            const currentWin = Math.floor(currentBet * crashVal);
             document.getElementById('mult').innerText = crashVal.toFixed(2) + "x";
-            document.getElementById('rocket').style.transform = `translate(${crashVal*12}px, -${crashVal*12}px)`;
+            btn.innerText = `ЗАБРАТЬ (${currentWin} ⭐)`;
+            btn.classList.add('btn-stop');
+            
+            document.getElementById('rocket').style.transform = `translate(${crashVal*7}px, -${crashVal*7}px)`;
             if(crashVal >= boom) finishCrash();
-        }, 30);
+        }, 80); // Замедленный интервал (был 35мс)
     }
 
     function finishCrash() {
         clearInterval(crashTimer);
-        crashActive = false; 
+        crashActive = false;
         const btn = document.getElementById('crash-btn');
-        btn.disabled = true;
+        btn.disabled = true; 
         document.getElementById('mult').innerText = "BOOM!";
         document.getElementById('mult').style.color = "var(--red)";
         if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
@@ -281,6 +312,7 @@
         document.getElementById('action-modal').style.display = 'none';
         sync(); renderInv();
     }
+
     sync();
 </script>
 </body>
