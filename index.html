@@ -29,10 +29,16 @@
         .active { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        .history-bar {
+            display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; height: 30px;
+        }
+        .hist-item {
+            padding: 5px 12px; border-radius: 10px; font-size: 13px; font-weight: 800; background: var(--card); border: 1px solid var(--accent);
+        }
+
         .roulette-container { 
             position: relative; width: 100%; height: 200px; background: #050608; 
             border-radius: 28px; overflow: hidden; border: 2px solid var(--accent); margin-top: 10px;
-            box-shadow: inset 0 0 30px #000;
         }
         .pointer { 
             position: absolute; left: 50%; top: 0; width: 4px; height: 100%; 
@@ -40,22 +46,24 @@
             box-shadow: 0 0 25px var(--gold);
         }
         .tape { display: flex; align-items: center; height: 100%; will-change: transform; transition: transform 8s cubic-bezier(0.1, 0, 0.05, 1); }
+        
         .slot { 
-            min-width: 130px; width: 130px; height: 150px; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; background: linear-gradient(145deg, #1c212a, #161920); 
+            min-width: 130px; width: 130px; height: 160px; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; background: var(--card); 
             margin: 0 5px; border-radius: 22px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.05);
+            overflow: hidden; position: relative;
         }
-        .slot img { width: 75px; height: 75px; object-fit: contain; }
-        .slot-emoji { font-size: 50px; }
-        .slot span { font-size: 10px; font-weight: 700; margin-top: 12px; color: #7f8c8d; text-align: center; }
+        .slot img { width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0; z-index: 1; }
+        .slot-emoji { font-size: 50px; z-index: 2; position: relative; }
+        .slot span { 
+            position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.8);
+            font-size: 10px; font-weight: 700; padding: 6px 0; color: #fff; text-align: center; z-index: 3;
+        }
 
         .demo-box {
             display: flex; align-items: center; justify-content: center; 
-            gap: 10px; margin-top: 15px; background: var(--card); padding: 12px; border-radius: 18px;
-            border: 1px solid var(--accent);
+            gap: 10px; margin: 15px 0; background: var(--card); padding: 12px; border-radius: 18px; border: 1px solid var(--accent);
         }
-        .demo-box input { width: 20px; height: 20px; accent-color: var(--gold); cursor: pointer; }
-        .demo-box label { font-size: 14px; font-weight: 700; color: #7f8c8d; cursor: pointer; }
 
         .crash-area { 
             background: #090a0d; border-radius: 30px; height: 260px; display: flex; 
@@ -84,7 +92,7 @@
 
         .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal-win { background: var(--card); padding: 40px 20px; border-radius: 35px; border: 2px solid var(--gold); text-align: center; width: 85%; }
-        .inv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .inv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     </style>
 </head>
 <body>
@@ -94,8 +102,8 @@
 <div id="win-modal" class="modal-overlay">
     <div class="modal-win">
         <h2 id="win-title" style="color:var(--gold); margin:0;">ВЫПАЛО!</h2>
-        <div id="win-content" style="padding: 30px 0;"></div>
-        <button class="btn-main" onclick="claimReward()">ЗАКРЫТЬ</button>
+        <div id="win-content" style="padding: 30px 0; display:flex; justify-content:center;"></div>
+        <button class="btn-main" onclick="claimReward()">ЗАБРАТЬ</button>
     </div>
 </div>
 
@@ -110,17 +118,18 @@
     </div>
     <div class="demo-box">
         <input type="checkbox" id="demo-mode" onchange="sync()">
-        <label for="demo-mode">ДЕМО-РЕЖИМ</label>
+        <label for="demo-mode" style="font-weight:700; color:#7f8c8d;">ДЕМО-РЕЖИМ</label>
     </div>
-    <button class="btn-main" id="spin-btn" style="margin-top:15px;" onclick="startRoulette()">ОТКРЫТЬ (500 ⭐)</button>
+    <button class="btn-main" id="spin-btn" onclick="startRoulette()">ОТКРЫТЬ (500 ⭐)</button>
 </div>
 
 <div id="tab-crash" class="section">
+    <div id="crash-history" class="history-bar"></div>
     <div class="crash-area">
         <div id="mult">1.00x</div>
         <div id="rocket">🚀</div>
     </div>
-    <input type="number" id="bet-input" style="width:100%; padding:20px; box-sizing: border-box; background:#1c212a; border:2px solid var(--accent); color:#fff; border-radius:18px; margin-bottom:15px; text-align:center; font-size: 18px;" placeholder="Ставка (Мин. 100)">
+    <input type="number" id="bet-input" style="width:100%; padding:20px; box-sizing: border-box; background:#1c212a; border:2px solid var(--accent); color:#fff; border-radius:18px; margin-bottom:15px; text-align:center; font-size: 18px;" placeholder="Ваша ставка...">
     <button class="btn-main" id="crash-btn" onclick="handleCrash()">ПОЕХАЛИ!</button>
 </div>
 
@@ -151,10 +160,9 @@
         {id: 's400', name: '400 Stars', img: '⭐', val: 400, rarity: 5}
     ];
 
-    let balance = parseInt(localStorage.getItem('user_bal'));
-    if (isNaN(balance)) balance = 1000;
-
+    let balance = parseInt(localStorage.getItem('user_bal')) || 1000;
     let inventory = JSON.parse(localStorage.getItem('user_inv')) || [];
+    let crashHistory = JSON.parse(localStorage.getItem('crash_hist')) || [];
     let isBusy = false;
     let currentPrize = null;
     let isDemoActive = false;
@@ -162,9 +170,20 @@
     function sync() {
         localStorage.setItem('user_bal', balance);
         localStorage.setItem('user_inv', JSON.stringify(inventory));
+        localStorage.setItem('crash_hist', JSON.stringify(crashHistory));
         document.getElementById('balance-val').innerText = balance.toLocaleString();
         const demo = document.getElementById('demo-mode').checked;
         document.getElementById('spin-btn').disabled = (balance < 500 && !demo) || isBusy;
+        renderCrashHistory();
+    }
+
+    function renderCrashHistory() {
+        const h = document.getElementById('crash-history');
+        h.innerHTML = '';
+        crashHistory.slice(-5).reverse().forEach(v => {
+            let color = v >= 2 ? 'var(--green)' : (v <= 1.2 ? 'var(--red)' : 'var(--gold)');
+            h.innerHTML += `<div class="hist-item" style="color:${color}">${v.toFixed(2)}x</div>`;
+        });
     }
 
     function nav(id) {
@@ -186,97 +205,83 @@
         return items[0];
     }
 
+    // --- ФИКС ВЫПАДЕНИЯ ПРЕДМЕТА ---
     function startRoulette() {
         const demo = document.getElementById('demo-mode').checked;
         if(!demo && (balance < 500 || isBusy)) return;
-        
-        if(!demo) balance -= 500; 
-        isDemoActive = demo;
-        isBusy = true; 
-        sync();
-        
+        if(!demo) balance -= 500;
+        isDemoActive = demo; isBusy = true; sync();
+
         const tape = document.getElementById('tape');
         tape.style.transition = 'none'; tape.style.transform = 'translateX(0)'; tape.innerHTML = '';
-        
-        const slotWidth = 140; 
-        const winIdx = 45; 
+
+        const slotWidth = 140; // 130px ширина + 10px суммарный отступ (5+5)
+        const winIdx = 45; // Предмет под стрелкой всегда будет в этой позиции
         currentPrize = getRandomItem();
-        
-        for(let i=0; i<60; i++) {
+
+        for(let i = 0; i < 60; i++) {
             let it = (i === winIdx) ? currentPrize : getRandomItem();
             const content = it.img === '⭐' ? `<div class="slot-emoji">⭐</div>` : `<img src="img/${it.img}">`;
             tape.innerHTML += `<div class="slot">${content}<span>${it.name}</span></div>`;
         }
-        
+
         setTimeout(() => {
             tape.style.transition = 'transform 8s cubic-bezier(0.1, 0, 0.05, 1)';
-            const center = window.innerWidth / 2;
-            const stopPos = (winIdx * slotWidth) + (slotWidth / 2) - center;
+            const centerOffset = window.innerWidth / 2;
+            // Точный расчет: (ширина всех слотов до нужного) + (половина выигрышного слота) - (центр экрана)
+            const stopPos = (winIdx * slotWidth) + (slotWidth / 2) - centerOffset;
             tape.style.transform = `translateX(-${stopPos}px)`;
         }, 50);
 
         setTimeout(() => {
             document.getElementById('win-modal').style.display = 'flex';
-            document.getElementById('win-title').innerText = isDemoActive ? "ДЕМО-ВЫИГРЫШ" : "ВЫПАЛО!";
-            document.getElementById('win-content').innerHTML = currentPrize.img === '⭐' ? '<div style="font-size:60px">⭐</div>' : `<img src="img/${currentPrize.img}" width="140">` + `<h3>${currentPrize.name}</h3>`;
-            if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-        }, 8200);
+            document.getElementById('win-title').innerText = isDemoActive ? "ДЕМО-ОТКРЫТИЕ" : "ВЫ ВЫИГРАЛИ!";
+            const content = currentPrize.img === '⭐' ? `<div class="slot-emoji">⭐</div>` : `<div class="slot" style="margin:0;"><img src="img/${currentPrize.img}"><span>${currentPrize.name}</span></div>`;
+            document.getElementById('win-content').innerHTML = content;
+        }, 8500);
     }
 
     function claimReward() {
         if(!isDemoActive && currentPrize) {
-            if(currentPrize.val) balance += currentPrize.val; 
-            else inventory.push(currentPrize);
+            if(currentPrize.val) balance += currentPrize.val; else inventory.push(currentPrize);
         }
         document.getElementById('win-modal').style.display = 'none';
-        isBusy = false; 
-        currentPrize = null;
-        sync();
+        isBusy = false; currentPrize = null; sync();
     }
 
-    // --- CRASH LOGIC (45% BOOM + SLOWER MULT) ---
+    // --- КРАШ ---
     let crashActive = false; let crashVal = 1.0; let crashTimer; let currentBet = 0;
-
     function handleCrash() {
         const btn = document.getElementById('crash-btn');
         if (crashActive) {
-            const winAmount = Math.floor(currentBet * crashVal);
-            balance += winAmount;
-            clearInterval(crashTimer); 
-            resetCrash(); 
-            return;
+            balance += Math.floor(currentBet * crashVal);
+            crashHistory.push(parseFloat(crashVal.toFixed(2)));
+            clearInterval(crashTimer); resetCrash(); return;
         }
         const bet = parseInt(document.getElementById('bet-input').value);
-        if(!bet || bet < 100 || bet > balance) return alert("Ошибка ставки!");
+        if(!bet || bet < 100 || bet > balance) return alert("Недостаточно звезд!");
         
         currentBet = bet; balance -= bet; isBusy = true; crashActive = true; sync();
-        
-        const isInstant = Math.random() < 0.45; // 45% шанс взрыва на 1.00
-        const boom = isInstant ? 1.00 : (Math.random() * 6 + 1.1).toFixed(2);
-        
-        if(isInstant) { finishCrash(); return; }
+        const isInstant = Math.random() < 0.45; 
+        const boom = isInstant ? 1.00 : (Math.random() * 5 + 1.1).toFixed(2);
+        if(isInstant) { finishCrash(1.00); return; }
         
         crashTimer = setInterval(() => {
-            crashVal += 0.01; // Замедленный прирост (был 0.02)
-            const currentWin = Math.floor(currentBet * crashVal);
+            crashVal += 0.01;
             document.getElementById('mult').innerText = crashVal.toFixed(2) + "x";
-            btn.innerText = `ЗАБРАТЬ (${currentWin} ⭐)`;
+            btn.innerText = `ЗАБРАТЬ (${Math.floor(currentBet * crashVal)})`;
             btn.classList.add('btn-stop');
-            
-            document.getElementById('rocket').style.transform = `translate(${crashVal*7}px, -${crashVal*7}px)`;
-            if(crashVal >= boom) finishCrash();
-        }, 80); // Замедленный интервал (был 35мс)
+            document.getElementById('rocket').style.transform = `translate(${crashVal*6}px, -${crashVal*6}px)`;
+            if(crashVal >= boom) finishCrash(boom);
+        }, 85);
     }
 
-    function finishCrash() {
-        clearInterval(crashTimer);
-        crashActive = false;
-        const btn = document.getElementById('crash-btn');
-        btn.disabled = true; 
+    function finishCrash(v) {
+        clearInterval(crashTimer); crashActive = false;
+        crashHistory.push(parseFloat(v));
         document.getElementById('mult').innerText = "BOOM!";
         document.getElementById('mult').style.color = "var(--red)";
-        if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-        setTimeout(() => { btn.disabled = false; resetCrash(); }, 2000);
+        setTimeout(() => { resetCrash(); }, 2000);
     }
 
     function resetCrash() {
@@ -291,24 +296,24 @@
 
     function renderInv() {
         const list = document.getElementById('inv-list');
-        list.innerHTML = inventory.length ? '' : '<p style="grid-column:1/4; text-align:center; opacity:0.5;">Пусто</p>';
+        list.innerHTML = inventory.length ? '' : '<p style="grid-column:1/3; text-align:center; opacity:0.5; margin-top:50px;">Пусто</p>';
         inventory.forEach((it, i) => {
-            list.innerHTML += `<div class="slot" style="height:130px;" onclick="openAction(${i})"><img src="img/${it.img}" width="60"><span>${it.name}</span></div>`;
+            list.innerHTML += `<div class="slot" style="width:100%; height:160px;" onclick="openAction(${i})"><img src="img/${it.img}"><span>${it.name}</span></div>`;
         });
     }
 
     function openAction(idx) {
-        const it = inventory[idx]; 
+        const it = inventory[idx];
         document.getElementById('action-modal').style.display = 'flex';
         document.getElementById('action-content').innerHTML = `
             <h3>${it.name}</h3>
-            <p style="color:var(--gold); font-weight:700;">Цена продажи: ${it.sellPrice} ⭐</p>
+            <p style="color:var(--gold); font-weight:900;">Цена: ${it.sellPrice} ⭐</p>
             <button class="btn-main" onclick="sellItem(${idx}, ${it.sellPrice})">ПРОДАТЬ</button>
             <button class="btn-main" style="background:#333; color:#fff; margin-top:10px;" onclick="document.getElementById('action-modal').style.display='none'">ОТМЕНА</button>`;
     }
 
-    function sellItem(idx, price) {
-        inventory.splice(idx, 1); balance += price;
+    function sellItem(idx, p) {
+        inventory.splice(idx, 1); balance += p;
         document.getElementById('action-modal').style.display = 'none';
         sync(); renderInv();
     }
