@@ -127,7 +127,6 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Цены настроены так, чтобы продажа была ровно по твоему списку
     const items = [
         {id: 'chill', name: 'Chill Flame', img: 'Chill.png', sellPrice: 450, rarity: 25},
         {id: 'mood', name: 'Mood Pack', img: 'Mood.png', sellPrice: 650, rarity: 20},
@@ -174,31 +173,21 @@
     function startRoulette() {
         if(balance < 500 || isBusy) return;
         balance -= 500; isBusy = true; sync();
-        
         const tape = document.getElementById('tape');
-        tape.style.transition = 'none'; 
-        tape.style.transform = 'translateX(0)'; 
-        tape.innerHTML = '';
-        
-        const slotWidth = 140; 
-        const winIdx = 45; 
-        
-        // ВЫБИРАЕМ ПРИЗ ЗАРАНЕЕ ДЛЯ 100% ТОЧНОСТИ
+        tape.style.transition = 'none'; tape.style.transform = 'translateX(0)'; tape.innerHTML = '';
+        const slotWidth = 140; const winIdx = 45; 
         currentPrize = getRandomItem();
-        
         for(let i=0; i<60; i++) {
             let it = (i === winIdx) ? currentPrize : getRandomItem();
             const content = it.img === '⭐' ? `<div class="slot-emoji">⭐</div>` : `<img src="img/${it.img}">`;
             tape.innerHTML += `<div class="slot">${content}<span>${it.name}</span></div>`;
         }
-        
         setTimeout(() => {
             tape.style.transition = 'transform 8s cubic-bezier(0.15, 0, 0.05, 1)';
             const centerOffset = window.innerWidth / 2;
             const stopPos = (winIdx * slotWidth) + (slotWidth / 2) - centerOffset;
             tape.style.transform = `translateX(-${stopPos}px)`;
         }, 50);
-
         setTimeout(() => {
             document.getElementById('win-modal').style.display = 'flex';
             document.getElementById('win-content').innerHTML = currentPrize.img === '⭐' ? '<div style="font-size:60px">⭐</div>' : `<img src="img/${currentPrize.img}" width="140">` + `<h3>${currentPrize.name}</h3>`;
@@ -212,44 +201,91 @@
         isBusy = false; sync();
     }
 
-    let crashActive = false; let crashVal = 1.0; let crashTimer; let currentBet = 0;
+    // --- ОБНОВЛЕННЫЙ CRASH ---
+    let crashActive = false; 
+    let crashVal = 1.0; 
+    let crashTimer; 
+    let currentBet = 0;
+
     function handleCrash() {
         const btn = document.getElementById('crash-btn');
+        
+        // Кнопка "Забрать"
         if (crashActive) {
             balance += Math.floor(currentBet * crashVal);
-            clearInterval(crashTimer); resetCrash(); return;
+            clearInterval(crashTimer); 
+            resetCrash(); 
+            return;
         }
+
         const bet = parseInt(document.getElementById('bet-input').value);
         if(!bet || bet < 100 || bet > balance) return alert("Ошибка ставки!");
-        currentBet = bet; balance -= bet; isBusy = true; crashActive = true; sync();
-        btn.innerText = "ЗАБРАТЬ"; btn.classList.add('btn-stop');
-        const isInstant = Math.random() < 0.10;
-        const boom = isInstant ? 1.00 : (Math.random() * 5 + 1.1).toFixed(2);
-        if(isInstant) { finishCrash(); return; }
+
+        // Инициализация игры
+        currentBet = bet; 
+        balance -= bet; 
+        isBusy = true; 
+        crashActive = true; 
+        sync();
+
+        btn.innerText = "ЗАБРАТЬ"; 
+        btn.classList.add('btn-stop');
+
+        // НАСТРОЙКИ ШАНСОВ:
+        // 25% шанс моментального взрыва на 1.00x
+        const isInstant = Math.random() < 0.25; 
+        // Если не моментально, взрыв от 1.05 до 3.50 (более рискованно)
+        const boom = isInstant ? 1.00 : (Math.random() * 2.5 + 1.05).toFixed(2);
+
+        if(isInstant) {
+            finishCrash();
+            return;
+        }
+
+        // ТАЙМЕР (Ускорен)
         crashTimer = setInterval(() => {
-            crashVal += 0.01;
+            // Увеличили шаг и уменьшили задержку (30мс вместо 50мс)
+            crashVal += 0.02; 
             document.getElementById('mult').innerText = crashVal.toFixed(2) + "x";
-            document.getElementById('rocket').style.transform = `translate(${crashVal*8}px, -${crashVal*8}px)`;
-            if(crashVal >= boom) finishCrash();
-        }, 50);
+            
+            // Анимация ракеты чуть быстрее
+            document.getElementById('rocket').style.transform = `translate(${crashVal*12}px, -${crashVal*12}px)`;
+
+            if(crashVal >= boom) {
+                finishCrash();
+            }
+        }, 30);
     }
 
     function finishCrash() {
         clearInterval(crashTimer);
+        crashActive = false; // КРИТИЧНО: Сразу выключаем активность, чтобы кнопка "Забрать" не сработала
+        const btn = document.getElementById('crash-btn');
+        btn.disabled = true; // Блокируем кнопку на время взрыва
+        
         document.getElementById('mult').innerText = "BOOM!";
         document.getElementById('mult').style.color = "var(--red)";
+        
         if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-        setTimeout(resetCrash, 2000);
+        
+        setTimeout(() => {
+            btn.disabled = false;
+            resetCrash();
+        }, 2000);
     }
 
     function resetCrash() {
-        crashActive = false; isBusy = false; clearInterval(crashTimer);
+        crashActive = false; 
+        isBusy = false; 
+        clearInterval(crashTimer);
         const btn = document.getElementById('crash-btn');
-        btn.innerText = "ПОЕХАЛИ!"; btn.classList.remove('btn-stop');
+        btn.innerText = "ПОЕХАЛИ!"; 
+        btn.classList.remove('btn-stop');
         document.getElementById('mult').style.color = "var(--gold)";
         document.getElementById('mult').innerText = "1.00x";
         document.getElementById('rocket').style.transform = "translate(0,0)";
-        crashVal = 1.0; sync();
+        crashVal = 1.0; 
+        sync();
     }
 
     function renderInv() {
@@ -262,7 +298,7 @@
 
     function openAction(idx) {
         const it = inventory[idx]; 
-        const sellPrice = it.sellPrice; // Используем точную цену из списка
+        const sellPrice = it.sellPrice; 
         document.getElementById('action-modal').style.display = 'flex';
         document.getElementById('action-content').innerHTML = `
             <h3>${it.name}</h3>
