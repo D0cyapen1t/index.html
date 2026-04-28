@@ -127,13 +127,14 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
+    // Цены настроены так, чтобы продажа была ровно по твоему списку
     const items = [
-        {id: 'chill', name: 'Chill Flame', img: 'Chill.png', price: 450, rarity: 25},
-        {id: 'mood', name: 'Mood Pack', img: 'Mood.png', price: 650, rarity: 20},
-        {id: 'snoop', name: 'Snoop Dogg', img: 'Snoop.png', price: 750, rarity: 15},
-        {id: 'ufc', name: 'UFC STRICE', img: 'UFC.png', price: 1450, rarity: 12},
-        {id: 'low', name: 'Low Rider', img: 'Low.png', price: 4000, rarity: 8},
-        {id: 'voodoo', name: 'Voodoo Doll', img: 'Voodoo.png', price: 3100, rarity: 10},
+        {id: 'chill', name: 'Chill Flame', img: 'Chill.png', sellPrice: 450, rarity: 25},
+        {id: 'mood', name: 'Mood Pack', img: 'Mood.png', sellPrice: 650, rarity: 20},
+        {id: 'snoop', name: 'Snoop Dogg', img: 'Snoop.png', sellPrice: 750, rarity: 15},
+        {id: 'ufc', name: 'UFC STRICE', img: 'UFC.png', sellPrice: 1450, rarity: 12},
+        {id: 'low', name: 'Low Rider', img: 'Low.png', sellPrice: 4000, rarity: 8},
+        {id: 'voodoo', name: 'Voodoo Doll', img: 'Voodoo.png', sellPrice: 3100, rarity: 10},
         {id: 's50', name: '50 Stars', img: '⭐', val: 50, rarity: 15},
         {id: 's150', name: '150 Stars', img: '⭐', val: 150, rarity: 10},
         {id: 's400', name: '400 Stars', img: '⭐', val: 400, rarity: 5}
@@ -182,10 +183,9 @@
         const slotWidth = 140; 
         const winIdx = 45; 
         
-        // 1. Сначала выбираем выигрышный предмет ОДИН РАЗ
+        // ВЫБИРАЕМ ПРИЗ ЗАРАНЕЕ ДЛЯ 100% ТОЧНОСТИ
         currentPrize = getRandomItem();
         
-        // 2. Генерируем ленту, вставляя наш приз строго в winIdx
         for(let i=0; i<60; i++) {
             let it = (i === winIdx) ? currentPrize : getRandomItem();
             const content = it.img === '⭐' ? `<div class="slot-emoji">⭐</div>` : `<img src="img/${it.img}">`;
@@ -195,7 +195,6 @@
         setTimeout(() => {
             tape.style.transition = 'transform 8s cubic-bezier(0.15, 0, 0.05, 1)';
             const centerOffset = window.innerWidth / 2;
-            // Рассчитываем точное смещение до центра winIdx
             const stopPos = (winIdx * slotWidth) + (slotWidth / 2) - centerOffset;
             tape.style.transform = `translateX(-${stopPos}px)`;
         }, 50);
@@ -263,11 +262,11 @@
 
     function openAction(idx) {
         const it = inventory[idx]; 
-        const sellPrice = Math.floor(it.price * 0.5); 
+        const sellPrice = it.sellPrice; // Используем точную цену из списка
         document.getElementById('action-modal').style.display = 'flex';
         document.getElementById('action-content').innerHTML = `
             <h3>${it.name}</h3>
-            <p style="color:var(--red); font-weight:700;">Цена продажи: ${sellPrice} ⭐</p>
+            <p style="color:var(--gold); font-weight:700;">Цена продажи: ${sellPrice} ⭐</p>
             <button class="btn-main" onclick="sellItem(${idx}, ${sellPrice})">ПРОДАТЬ</button>
             <button class="btn-main" style="background:#333; color:#fff; margin-top:10px;" onclick="document.getElementById('action-modal').style.display='none'">ОТМЕНА</button>`;
     }
