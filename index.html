@@ -90,7 +90,7 @@
         {id: 'stars', name: '1000 Stars', img: '⭐', price: 0}
     ];
 
-    // Загружаем баланс из URL (от бота) или из локальной памяти
+    // Приоритет: Данные из URL (от бота) > LocalStorage
     let balance = parseInt(new URLSearchParams(window.location.search).get('balance')) || parseInt(localStorage.getItem('user_bal')) || 0;
     let inventory = JSON.parse(localStorage.getItem('user_inv')) || [];
     let isBusy = false;
@@ -101,12 +101,6 @@
         localStorage.setItem('user_inv', JSON.stringify(inventory));
         document.getElementById('balance-val').innerText = balance;
         document.getElementById('spin-btn').disabled = (balance < 500 || isBusy);
-        
-        // ВАЖНО: Мы НЕ используем tg.sendData, чтобы не закрывать приложение!
-        // Сохраняем в облако Telegram (будет доступно при следующем входе)
-        if (tg.CloudStorage) {
-            tg.CloudStorage.setItem('cached_bal', balance.toString());
-        }
     }
 
     function nav(id) {
