@@ -5,117 +5,160 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --gold: #FFD700; --bg: #050505; }
-        body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 0; overflow: hidden; text-align: center; }
+        :root { --gold: #FFD700; --bg: #050505; --card: #111; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; overflow: hidden; text-align: center; }
+        
         .header { padding: 15px; border-bottom: 2px solid var(--gold); background: #000; font-size: 24px; font-weight: bold; color: var(--gold); }
-        .section { display: none; height: 80vh; padding: 20px; }
+        
+        .section { display: none; height: 80vh; padding: 20px; box-sizing: border-box; }
         .active { display: block; }
-        .roulette { position: relative; width: 100%; height: 120px; background: #111; border: 1px solid #333; margin: 20px 0; overflow: hidden; border-radius: 10px; }
-        .pointer { position: absolute; left: 50%; top: 0; width: 2px; height: 100%; background: var(--gold); z-index: 5; transform: translateX(-50%); box-shadow: 0 0 10px var(--gold); }
-        .tape { display: flex; transition: transform 5s cubic-bezier(0.1, 0, 0, 1); align-items: center; }
-        .slot { min-width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; }
-        .slot img { width: 80px; height: 80px; object-fit: contain; }
-        .btn { background: var(--gold); color: #000; border: none; width: 100%; padding: 15px; border-radius: 10px; font-weight: bold; font-size: 18px; cursor: pointer; }
-        .btn:disabled { background: #333; color: #666; }
-        .nav { position: fixed; bottom: 0; width: 100%; height: 60px; background: #111; display: flex; border-top: 1px solid #222; }
-        .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; color: #555; cursor: pointer; font-size: 14px; }
-        .nav-item.active-nav { color: var(--gold); font-weight: bold; }
+
+        /* Рулетка */
+        .roulette { position: relative; width: 100%; height: 160px; background: #0a0a0a; border: 1px solid #333; margin: 20px 0; overflow: hidden; border-radius: 15px; }
+        .pointer { position: absolute; left: 50%; top: 0; width: 3px; height: 100%; background: var(--gold); z-index: 10; transform: translateX(-50%); box-shadow: 0 0 15px var(--gold); }
+        .tape { display: flex; transition: transform 5s cubic-bezier(0.1, 0, 0, 1); align-items: center; padding-top: 10px; }
+        
+        .slot { min-width: 120px; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
+        .slot img { width: 80px; height: 80px; object-fit: contain; margin-bottom: 5px; }
+        .slot span { font-size: 11px; color: #aaa; text-transform: uppercase; font-weight: bold; }
+
+        .btn { background: var(--gold); color: #000; border: none; width: 100%; padding: 18px; border-radius: 12px; font-weight: 900; font-size: 18px; cursor: pointer; transition: 0.2s; }
+        .btn:disabled { background: #222; color: #444; cursor: not-allowed; }
+
+        .nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #0c0c0c; display: flex; border-top: 1px solid #222; }
+        .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; color: #444; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .nav-item.active-nav { color: var(--gold); }
+
         .inv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .inv-card { background: #1a1a1a; padding: 5px; border-radius: 5px; font-size: 10px; border: 1px solid #333; }
-        .inv-card img { width: 100%; }
+        .inv-card { background: var(--card); padding: 10px; border-radius: 10px; border: 1px solid #222; font-size: 10px; }
+        .inv-card img { width: 100%; margin-bottom: 5px; height: 60px; object-fit: contain; }
     </style>
 </head>
 <body>
 
-    <div class="header">⭐ <span id="b-val">0</span></div>
+    <div class="header">⭐ <span id="balance-display">0</span></div>
 
-    <div id="m-menu" class="section active"><h1>LYDKA</h1><p>VIP EDITION</p></div>
+    <div id="tab-menu" class="section active">
+        <h1 style="color: var(--gold); margin-top: 50px;">LYDKA</h1>
+        <p style="color: #666;">ЭКСКЛЮЗИВНЫЕ NFT КЕЙСЫ</p>
+    </div>
 
-    <div id="m-cases" class="section">
+    <div id="tab-cases" class="section">
         <div class="roulette">
             <div class="pointer"></div>
             <div id="tape" class="tape"></div>
         </div>
-        <button class="btn" id="spin-btn" onclick="spin()">ОТКРЫТЬ (500 ⭐)</button>
+        <button class="btn" id="spin-btn" onclick="startSpin()">КРУТИТЬ (500 ⭐)</button>
     </div>
 
-    <div id="m-profile" class="section">
-        <h3>ИНВЕНТАРЬ</h3>
-        <div id="inv" class="inv-grid"></div>
+    <div id="tab-profile" class="section">
+        <h3 style="color: var(--gold);">ИНВЕНТАРЬ</h3>
+        <div id="inv-list" class="inv-grid"></div>
     </div>
 
     <nav class="nav">
-        <div class="nav-item" onclick="tab('menu')">МЕНЮ</div>
-        <div class="nav-item" onclick="tab('cases')">КЕЙСЫ</div>
-        <div class="nav-item" onclick="tab('profile')">ПРОФИЛЬ</div>
+        <div class="nav-item" onclick="switchTab('menu')">МЕНЮ</div>
+        <div class="nav-item" id="nav-cases" onclick="switchTab('cases')">КЕЙСЫ</div>
+        <div class="nav-item" onclick="switchTab('profile')">ПРОФИЛЬ</div>
     </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
         const params = new URLSearchParams(window.location.search);
+        
         let balance = parseInt(params.get('balance')) || 0;
-        let spinning = false;
+        let isSpinning = false;
+        let inventory = [];
 
-        const pool = [
-            {id: 'chill', n: 'Chill Flame', img: 'Chill.png'},
-            {id: 'mood', n: 'Mood Pack', img: 'Mood.png'},
-            {id: 'snoop', n: 'Snoop Dogs', img: 'Snoop.png'},
-            {id: 'ufc', n: 'UFC Strike', img: 'UFC.png'},
-            {id: 'low', n: 'Low Rider', img: 'Low.png'},
-            {id: 'voodoo', n: 'Voodoo Doll', img: 'Voodoo.png'},
-            {id: 'stars', n: 'Stars', img: 'Stars.png'}
+        const items = [
+            {id: 'chill', name: 'Chill', img: 'Chill.png'},
+            {id: 'mood', name: 'Mood', img: 'Mood.png'},
+            {id: 'snoop', name: 'Snoop', img: 'Snoop.png'},
+            {id: 'ufc', name: 'UFC', img: 'UFC.png'},
+            {id: 'low', name: 'Low', img: 'Low.png'},
+            {id: 'voodoo', name: 'Voodoo', img: 'Voodoo.png'},
+            {id: 'stars', name: 'Stars', img: 'Stars.png'}
         ];
 
-        function update() {
-            document.getElementById('b-val').innerText = balance;
-            document.getElementById('spin-btn').disabled = (balance < 500 || spinning);
+        function updateBalance() {
+            document.getElementById('balance-display').innerText = balance;
+            document.getElementById('spin-btn').disabled = (balance < 500 || isSpinning);
         }
 
-        function tab(id) {
+        function switchTab(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById('m-' + id).classList.add('active');
+            document.getElementById('tab-' + id).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active-nav'));
+            event.currentTarget.classList.add('active-nav');
         }
 
-        function spin() {
-            if(balance < 500 || spinning) return;
-            spinning = true;
-            balance -= 500;
-            update();
+        function renderInventory() {
+            const list = document.getElementById('inv-list');
+            list.innerHTML = '';
+            inventory.forEach(item => {
+                list.innerHTML += `
+                    <div class="inv-card">
+                        <img src="img/${item.img}">
+                        <span>${item.name}</span>
+                    </div>`;
+            });
+        }
+
+        function startSpin() {
+            if (balance < 500 || isSpinning) return;
+
+            isSpinning = true;
+            balance -= 500; // Мгновенное визуальное списание
+            updateBalance();
 
             const tape = document.getElementById('tape');
             tape.style.transition = 'none';
             tape.style.transform = 'translateX(0)';
             tape.innerHTML = '';
 
-            for(let i=0; i<60; i++) {
-                const it = pool[Math.floor(Math.random() * pool.length)];
-                tape.innerHTML += `<div class="slot"><img src="img/${it.img}"></div>`;
+            // Создаем ленту (60 элементов)
+            for (let i = 0; i < 60; i++) {
+                const randomItem = items[Math.floor(Math.random() * items.length)];
+                tape.innerHTML += `
+                    <div class="slot">
+                        <img src="img/${randomItem.img}">
+                        <span>${randomItem.name}</span>
+                    </div>`;
             }
 
-            const winIdx = 55;
-            const winner = pool[Math.floor(Math.random() * pool.length)];
-            tape.querySelectorAll('.slot')[winIdx].innerHTML = `<img src="img/${winner.img}">`;
+            const winIndex = 54; // Индекс выигрышного слота
+            const winner = items[Math.floor(Math.random() * items.length)];
+            
+            // Подменяем слот победителя
+            const slots = tape.querySelectorAll('.slot');
+            slots[winIndex].innerHTML = `<img src="img/${winner.img}"><span>${winner.name}</span>`;
 
+            // Запускаем анимацию
             setTimeout(() => {
                 tape.style.transition = 'transform 5s cubic-bezier(0.1, 0, 0, 1)';
-                const shift = (winIdx * 100) - (window.innerWidth / 2) + 50;
-                tape.style.transform = `translateX(-${shift}px)`;
+                const slotWidth = 120;
+                const offset = (winIndex * slotWidth) - (window.innerWidth / 2) + (slotWidth / 2);
+                tape.style.transform = `translateX(-${offset}px)`;
             }, 50);
 
+            // Финал
             setTimeout(() => {
-                spinning = false;
-                if(winner.id === 'stars') balance += 1000;
-                else {
-                    document.getElementById('inv').innerHTML += `
-                        <div class="inv-card"><img src="img/${winner.img}"><p>${winner.n}</p></div>
-                    `;
+                isSpinning = false;
+                
+                if (winner.id === 'stars') {
+                    balance += 1000;
+                } else {
+                    inventory.push(winner); // Добавляем в инвентарь
+                    renderInventory();
                 }
-                update();
+                
+                updateBalance();
                 tg.sendData(JSON.stringify({action: "spin_done", win_id: winner.id}));
             }, 5500);
         }
 
-        update();
+        updateBalance();
+        switchTab('cases'); // Сразу открываем кейсы для удобства
     </script>
 </body>
 </html>
