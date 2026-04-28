@@ -18,41 +18,35 @@
         .balance-pill { 
             background: var(--card); border: 1px solid var(--gold); padding: 10px 30px; 
             border-radius: 12px; font-size: 22px; font-weight: 900; color: var(--gold); 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
         .section { display: none; height: calc(100vh - 160px); padding: 15px; box-sizing: border-box; overflow-y: auto; padding-bottom: 100px; }
         .active { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* КРАШ ИСТОРИЯ */
+        /* КРАШ */
         .crash-history { display: flex; gap: 8px; overflow-x: auto; padding: 5px 0 15px; scrollbar-width: none; }
         .history-item { padding: 6px 12px; border-radius: 8px; background: var(--card); border: 1px solid var(--accent); font-size: 12px; font-weight: 900; color: var(--text-dim); flex-shrink: 0; }
         .history-item.high { color: var(--gold); border-color: var(--gold); }
 
-        /* КАРТОЧКИ ИГР */
-        .game-card { border-radius: 18px; padding: 25px; min-height: 120px; display: flex; flex-direction: column; justify-content: center; cursor: pointer; transition: 0.2s; border: 1px solid var(--accent); margin-bottom: 12px; background: var(--card); }
-        .game-card:active { transform: scale(0.97); background: var(--accent); }
+        .game-card { border-radius: 18px; padding: 25px; min-height: 120px; display: flex; flex-direction: column; justify-content: center; cursor: pointer; border: 1px solid var(--accent); margin-bottom: 12px; background: var(--card); }
         .game-card h2 { margin: 0; font-size: 26px; font-weight: 900; text-transform: uppercase; color: var(--gold); }
-        .game-card p { margin: 5px 0 0; color: var(--text-dim); font-size: 14px; }
 
         /* РУЛЕТКА */
         .roulette-container { position: relative; width: 100%; height: 220px; background: #000; border-radius: 18px; overflow: hidden; border: 1px solid var(--accent); }
         .pointer { position: absolute; left: 50%; top: 0; width: 2px; height: 100%; background: var(--gold); z-index: 20; transform: translateX(-50%); box-shadow: 0 0 10px var(--gold); }
-        .tape { display: flex; align-items: center; height: 100%; will-change: transform; }
+        .tape { display: flex; align-items: center; height: 100%; }
         .slot { min-width: 140px; width: 140px; height: 180px; display: flex; flex-direction: column; margin: 0 6px; border-radius: 12px; flex-shrink: 0; overflow: hidden; position: relative; background: var(--card); border: 1px solid var(--accent); }
         .slot img { width: 100%; height: 100%; object-fit: cover; }
         .slot-label { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 10px 0; text-align: center; font-size: 10px; font-weight: 900; color: var(--gold); }
 
-        /* КНОПКИ И ВВОД */
         input { width: 100%; padding: 20px; background: var(--card); border: 1px solid var(--accent); color: var(--gold); border-radius: 12px; margin-bottom: 15px; text-align: center; font-size: 22px; font-weight: 900; outline: none; }
         .btn-main { background: var(--gold); color: #000; border: none; width: 100%; padding: 20px; border-radius: 12px; font-weight: 900; font-size: 18px; text-transform: uppercase; cursor: pointer; }
         .btn-stop { background: var(--red) !important; color: #fff !important; }
-        .btn-back { background: none; border: none; color: var(--text-dim); width: 100%; font-weight: 700; margin-top: 15px; text-transform: uppercase; cursor: pointer; font-size: 12px; }
+        .btn-back { background: none; border: none; color: var(--text-dim); width: 100%; margin-top: 15px; text-transform: uppercase; font-size: 12px; cursor: pointer; }
 
-        /* НАВИГАЦИЯ */
         .navbar { position: fixed; bottom: 0; width: 100%; height: 75px; background: var(--bg); display: flex; border-top: 1px solid var(--accent); z-index: 100; }
-        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-dim); cursor: pointer; }
+        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-dim); }
         .nav-btn.active { color: var(--gold); }
         .nav-btn span { font-size: 10px; font-weight: 900; margin-top: 4px; text-transform: uppercase; }
 
@@ -62,9 +56,7 @@
 </head>
 <body>
 
-<div class="header">
-    <div class="balance-pill"><span id="balance-val">0</span> ⭐</div>
-</div>
+<div class="header"><div class="balance-pill"><span id="balance-val">0</span> ⭐</div></div>
 
 <div id="win-modal" class="modal-overlay">
     <div class="modal-win">
@@ -110,15 +102,15 @@
 
 <script>
     const gifts = [
-        {name: 'UFC STRICE', img: 'UFC.png', price: 1450, color: '#1a1a1a'},
-        {name: 'Chill Flame', img: 'Chill.png', price: 450, color: '#1a1a1a'},
-        {name: 'Low Rider', img: 'Low.png', price: 4000, color: '#1a1a1a'},
-        {name: 'Lunar Snake', img: 'Snake.png', price: 300, color: '#1a1a1a'},
-        {name: 'Eternal Rose', img: 'Rose.png', price: 2300, color: '#1a1a1a'},
-        {name: 'Diamond Ring', img: 'Ring.png', price: 2500, color: '#1a1a1a'},
-        {name: 'Toy Bear', img: 'Bear.png', price: 3100, color: '#1a1a1a'},
-        {name: 'Westside Sign', img: 'Sign.png', price: 8000, color: '#1a1a1a'},
-        {name: '150 Stars', img: '⭐', val: 150, color: '#141414', price: 150}
+        {name: 'UFC STRICE', img: 'UFC.png', price: 1450},
+        {name: 'Chill Flame', img: 'Chill.png', price: 450},
+        {name: 'Low Rider', img: 'Low.png', price: 4000},
+        {name: 'Lunar Snake', img: 'Snake.png', price: 300},
+        {name: 'Eternal Rose', img: 'Rose.png', price: 2300},
+        {name: 'Diamond Ring', img: 'Ring.png', price: 2500},
+        {name: 'Toy Bear', img: 'Bear.png', price: 3100},
+        {name: 'Westside Sign', img: 'Sign.png', price: 8000},
+        {name: '150 Stars', img: '⭐', val: 150, price: 150}
     ];
 
     let balance = parseInt(localStorage.getItem('user_bal')) || 10000;
@@ -139,11 +131,7 @@
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         const target = document.getElementById('tab-' + id) || document.getElementById('game-' + id);
         if(target) target.classList.add('active');
-        
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        if(id === 'games') document.querySelectorAll('.nav-btn')[0].classList.add('active');
-        if(id === 'inv') { document.querySelectorAll('.nav-btn')[1].classList.add('active'); renderInv(); }
-        if(id === 'crash') renderCrashHistory();
+        if(id === 'inv') renderInv();
     }
 
     function openGame(name) { nav(name); }
@@ -187,7 +175,7 @@
         setTimeout(() => { m.innerText = "1.00x"; m.style.color = "var(--gold)"; crashVal = 1.0; sync(); }, 2000);
     }
 
-    /* ROULETTE FIXED */
+    /* ROULETTE ULTIMATE FIX */
     function startRoulette() {
         const isDemo = document.getElementById('demo-mode').checked;
         if(!isDemo && (balance < 500 || isBusy)) return;
@@ -197,34 +185,32 @@
         const tape = document.getElementById('tape');
         const winIdx = 35; 
         
-        // КЛЮЧЕВОЙ ФИКС: выбираем ПРИЗ один раз в начале
-        currentPrize = gifts[Math.floor(Math.random() * gifts.length)];
+        // Клонируем приз в константу функции, чтобы он не "уплыл"
+        const finalWin = gifts[Math.floor(Math.random() * gifts.length)];
+        currentPrize = finalWin;
         
-        tape.style.transition = 'none';
-        tape.style.transform = 'translateX(0)';
+        // Полный сброс стилей и анимации
+        tape.removeAttribute('style');
         tape.innerHTML = '';
+        void tape.offsetWidth; // Force Reflow
 
-        // Генерируем ленту: на 35 позицию ставим наш заранее выбранный currentPrize
         for(let i = 0; i < 45; i++) {
-            let itemData = (i === winIdx) ? currentPrize : gifts[Math.floor(Math.random() * gifts.length)];
-            const icon = itemData.img === '⭐' ? `<div style="font-size:40px;line-height:150px;text-align:center">⭐</div>` : `<img src="img/${itemData.img}">`;
-            tape.innerHTML += `<div class="slot">${icon}<div class="slot-label">${itemData.name}</div></div>`;
+            let it = (i === winIdx) ? finalWin : gifts[Math.floor(Math.random() * gifts.length)];
+            const icon = it.img === '⭐' ? `<div style="font-size:40px;line-height:150px;text-align:center">⭐</div>` : `<img src="img/${it.img}">`;
+            tape.innerHTML += `<div class="slot">${icon}<div class="slot-label">${it.name}</div></div>`;
         }
 
         setTimeout(() => {
-            const slotTotalWidth = 152; // 140px + 6px*2 margin
-            const center = window.innerWidth / 2;
-            // Рассчитываем точное смещение до 35-го слота
-            const finalShift = (winIdx * slotTotalWidth) - center + (slotTotalWidth / 2);
-            
-            tape.style.transition = 'transform 7s cubic-bezier(0.15, 0, 0.05, 1)';
-            tape.style.transform = `translateX(-${finalShift}px)`;
+            const slotWidth = 152;
+            const stopPos = (winIdx * slotWidth) - (window.innerWidth / 2) + (slotWidth / 2);
+            tape.style.transition = 'transform 7s cubic-bezier(0.1, 0, 0, 1)';
+            tape.style.transform = `translateX(-${stopPos}px)`;
         }, 50);
 
         setTimeout(() => {
             document.getElementById('win-modal').style.display = 'flex';
-            const icon = currentPrize.img === '⭐' ? `<div style="font-size:40px;">⭐</div>` : `<img src="img/${currentPrize.img}">`;
-            document.getElementById('win-content').innerHTML = `<div class="slot" style="background:var(--card); border:1px solid var(--gold)">${icon}<div class="slot-label">${currentPrize.name}</div></div>`;
+            const icon = finalWin.img === '⭐' ? `<div style="font-size:40px;">⭐</div>` : `<img src="img/${finalWin.img}">`;
+            document.getElementById('win-content').innerHTML = `<div class="slot">${icon}<div class="slot-label">${finalWin.name}</div></div>`;
             isBusy = false;
         }, 7500);
     }
