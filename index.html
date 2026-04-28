@@ -15,7 +15,7 @@
         }
         body { background: var(--bg); color: var(--text-main); font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; overflow: hidden; user-select: none; }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #000; border-bottom: 1px solid #1c1c1e; }
-        .balance-box { background: var(--card-bg); padding: 8px 16px; border-radius: 12px; display: flex; align-items: center; gap: 8px; font-weight: 800; border: 1px solid #2c2c2e; min-width: 100px; }
+        .balance-box { background: var(--card-bg); padding: 8px 16px; border-radius: 12px; display: flex; align-items: center; gap: 8px; font-weight: 800; border: 1px solid #2c2c2e; }
         .balance-box span { color: var(--accent); }
         .section { display: none; height: calc(100vh - 150px); padding: 15px; overflow-y: auto; box-sizing: border-box; }
         .active { display: block; }
@@ -24,7 +24,7 @@
         #crash-mult { font-size: 60px; font-weight: 900; color: var(--accent); }
         .btn-action { background: #fff; color: #000; border: none; width: 100%; padding: 18px; border-radius: 16px; font-weight: 800; font-size: 16px; text-transform: uppercase; margin-bottom: 10px; cursor: pointer; }
         .navbar { position: fixed; bottom: 0; width: 100%; height: 75px; background: #121212; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #2c2c2e; padding-bottom: 10px; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-sub); gap: 4px; font-size: 11px; font-weight: 600; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-sub); gap: 4px; font-size: 11px; font-weight: 600; cursor: pointer; }
         .nav-item.active { color: #fff; }
         .slot { min-width: 140px; width: 140px; height: 150px; margin: 0 5px; border-radius: 18px; background: var(--card-bg); overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; border: 1px solid #2c2c2e; flex-shrink: 0; }
         .slot img { width: 100%; height: 100%; object-fit: cover; position: absolute; }
@@ -35,7 +35,7 @@
 
 <div class="header">
     <div style="font-weight: 800; font-size: 20px;">GOLD SHOP</div>
-    <div class="balance-box">⭐ <span id="bal-display">...</span></div>
+    <div class="balance-box">⭐ <span id="bal-display">0</span></div>
 </div>
 
 <div id="tab-home" class="section active">
@@ -59,13 +59,13 @@
 
 <div id="tab-roulette" class="section">
     <div style="position:relative; width:100%; height:180px; background:#000; border-radius:20px; overflow:hidden; margin-bottom:15px; border:1px solid #2c2c2e;">
-        <div style="position:absolute; left:50%; top:0; width:4px; height:100%; background:var(--accent); z-index:50; transform:translateX(-50%); box-shadow: 0 0 10px var(--accent);"></div>
+        <div style="position:absolute; left:50%; top:0; width:4px; height:100%; background:var(--accent); z-index:50; transform:translateX(-50%);"></div>
         <div id="tape" style="display:flex; align-items:center; height:100%; transition: transform 7s cubic-bezier(0.1, 0, 0.05, 1);"></div>
     </div>
-    <div style="text-align:center; margin-bottom:15px; font-size:14px; font-weight:600;">
-        <label style="cursor:pointer;"><input type="checkbox" id="demo-mode"> ДЕМО-РЕЖИМ</label>
+    <div style="text-align:center; margin-bottom:15px;">
+        <label style="cursor:pointer; font-size:14px;"><input type="checkbox" id="demo-mode"> ДЕМО-РЕЖИМ</label>
     </div>
-    <button class="btn-action" id="spin-btn" onclick="startSpin()" style="background:var(--accent);">ОТКРЫТЬ (500 ⭐)</button>
+    <button class="btn-action" onclick="startSpin()" style="background:var(--accent);">ОТКРЫТЬ (500 ⭐)</button>
     <button class="btn-action" style="background:#333; color:#fff;" onclick="nav('home')">НАЗАД</button>
 </div>
 
@@ -108,27 +108,17 @@
     let inv = [];
     let isBusy = false;
 
-    // --- ЖЕСТКАЯ СИНХРОНИЗАЦИЯ ---
-    function sync() {
+    // СТАРАЯ ПРОВЕРЕННАЯ МЕХАНИКА (localStorage)
+    function save() {
         document.getElementById('bal-display').innerText = bal.toLocaleString();
-        const raw = JSON.stringify({ bal, inv });
-        localStorage.setItem('v4_data', raw);
-        if(tg.CloudStorage) tg.CloudStorage.setItem('v4_data', raw);
+        localStorage.setItem('game_data', JSON.stringify({ bal, inv }));
     }
 
-    async function init() {
-        const cloud = await new Promise(res => {
-            if(!tg.CloudStorage) return res(null);
-            tg.CloudStorage.getItem('v4_data', (err, val) => res(val));
-        });
-        const local = localStorage.getItem('v4_data');
-        const d = cloud ? JSON.parse(cloud) : (local ? JSON.parse(local) : null);
-        
-        if(d && d.bal !== undefined) {
-            bal = d.bal;
-            inv = d.inv || [];
-        }
-        sync();
+    function init() {
+        const data = JSON.parse(localStorage.getItem('game_data') || '{"bal":0,"inv":[]}');
+        bal = data.bal;
+        inv = data.inv;
+        save();
     }
 
     function nav(id) {
@@ -140,7 +130,7 @@
         if(id === 'profile') renderInv();
     }
 
-    // --- CRASH ---
+    // --- CRASH (МИН 25, 32% ВЗРЫВ) ---
     let crashActive = false, crashMult = 1.0, crashTimer, currentBet = 0;
     function handleCrash() {
         const btn = document.getElementById('crash-btn');
@@ -150,11 +140,11 @@
         }
         let bet = parseInt(document.getElementById('crash-bet').value);
         if(!bet || bet < 25 || bet > bal) return;
-        bal -= bet; currentBet = bet; isBusy = true; crashActive = true; sync();
+        bal -= bet; currentBet = bet; isBusy = true; crashActive = true; save();
         btn.innerText = "ЗАБРАТЬ"; btn.style.background = "var(--red)";
         
-        let loss = Math.random() < 0.32; // 32% шанс взрыва
-        let target = loss ? 1.00 : (1.05 + Math.random() * 4).toFixed(2);
+        let loss = Math.random() < 0.32; 
+        let target = loss ? 1.00 : (1.05 + Math.random() * 5).toFixed(2);
         
         if(loss) { setTimeout(() => endCrash(1.00, false), 400); return; }
         crashTimer = setInterval(() => {
@@ -173,16 +163,16 @@
         setTimeout(() => {
             document.getElementById('crash-mult').innerText = "1.00x";
             document.getElementById('crash-mult').style.color = "var(--accent)";
-            crashMult = 1.0; sync();
+            crashMult = 1.0; save();
         }, 2000);
     }
 
-    // --- ROULETTE ---
+    // --- ROULETTE (С ДЕМО) ---
     function startSpin() {
         const demo = document.getElementById('demo-mode').checked;
         if(!demo && (bal < 500 || isBusy)) return;
         if(!demo) bal -= 500;
-        isBusy = true; sync();
+        isBusy = true; save();
         
         const tape = document.getElementById('tape'), winIdx = 40;
         const prize = gifts[Math.floor(Math.random() * gifts.length)];
@@ -203,7 +193,7 @@
             document.getElementById('win-title').innerText = demo ? "ДЕМО-ВЫИГРЫШ" : "ВЫИГРЫШ!";
             const icon = prize.img === '⭐' ? `<div style="font-size:50px;">⭐</div>` : `<img src="img/${prize.img}">`;
             document.getElementById('win-box').innerHTML = `<div class="slot" style="margin:0;">${icon}<span>${prize.name}</span></div>`;
-            isBusy = false; sync();
+            isBusy = false; save();
         }, 7200);
     }
 
@@ -219,7 +209,7 @@
     function sell(idx) {
         const item = inv[idx];
         if(confirm(`Продать за ${item.price} ⭐?`)) {
-            bal += item.price; inv.splice(idx, 1); sync(); renderInv();
+            bal += item.price; inv.splice(idx, 1); save(); renderInv();
         }
     }
 
