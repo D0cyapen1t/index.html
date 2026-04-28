@@ -8,7 +8,7 @@
     <style>
         :root { 
             --gold: #ffca28; --bg: #0b0d10; --card: #161920; --accent: #232731; 
-            --red: #ff4757; --green: #2ed573; --blue: #3742fa;
+            --red: #ff4757; --green: #2ed573;
         }
         body { 
             background: var(--bg); color: #fff; font-family: 'Montserrat', sans-serif; 
@@ -39,7 +39,7 @@
             background: var(--gold); z-index: 20; transform: translateX(-50%);
             box-shadow: 0 0 25px var(--gold);
         }
-        .tape { display: flex; align-items: center; height: 100%; will-change: transform; }
+        .tape { display: flex; align-items: center; height: 100%; will-change: transform; transition: transform 8s cubic-bezier(0.15, 0, 0.05, 1); }
         .slot { 
             min-width: 130px; width: 130px; height: 150px; display: flex; flex-direction: column; 
             align-items: center; justify-content: center; background: linear-gradient(145deg, #1c212a, #161920); 
@@ -149,7 +149,7 @@
         return items[0];
     }
 
-    let balance = parseInt(new URLSearchParams(window.location.search).get('balance')) || parseInt(localStorage.getItem('user_bal')) || 0;
+    let balance = parseInt(localStorage.getItem('user_bal')) || 1000;
     let inventory = JSON.parse(localStorage.getItem('user_inv')) || [];
     let isBusy = false;
     let currentPrize = null;
@@ -173,24 +173,36 @@
     function startRoulette() {
         if(balance < 500 || isBusy) return;
         balance -= 500; isBusy = true; sync();
+        
         const tape = document.getElementById('tape');
-        tape.style.transition = 'none'; tape.style.transform = 'translateX(0)'; tape.innerHTML = '';
-        const slotWidth = 140; const winIdx = 45; 
+        const slotWidth = 140; // 130px + 10px margin
+        const winIdx = 45; 
+        
         currentPrize = getRandomItem();
-        for(let i=0; i<60; i++) {
+        
+        // Очистка и сброс ленты
+        tape.style.transition = 'none';
+        tape.style.transform = 'translateX(0)';
+        tape.innerHTML = '';
+        
+        // Генерация ленты
+        for(let i=0; i<65; i++) {
             let it = (i === winIdx) ? currentPrize : getRandomItem();
             const content = it.img === '⭐' ? `<div class="slot-emoji">⭐</div>` : `<img src="img/${it.img}">`;
             tape.innerHTML += `<div class="slot">${content}<span>${it.name}</span></div>`;
         }
+        
+        // Запуск прокрутки
         setTimeout(() => {
-            tape.style.transition = 'transform 8s cubic-bezier(0.15, 0, 0.05, 1)';
-            const centerOffset = window.innerWidth / 2;
-            const stopPos = (winIdx * slotWidth) + (slotWidth / 2) - centerOffset;
+            tape.style.transition = 'transform 8s cubic-bezier(0.1, 0, 0.05, 1)';
+            const center = window.innerWidth / 2;
+            const stopPos = (winIdx * slotWidth) + (slotWidth / 2) - center;
             tape.style.transform = `translateX(-${stopPos}px)`;
         }, 50);
+
         setTimeout(() => {
             document.getElementById('win-modal').style.display = 'flex';
-            document.getElementById('win-content').innerHTML = currentPrize.img === '⭐' ? '<div style="font-size:60px">⭐</div>' : `<img src="img/${currentPrize.img}" width="140">` + `<h3>${currentPrize.name}</h3>`;
+            document.getElementById('win-content').innerHTML = currentPrize.img === '⭐' ? '<div style="font-size:60px">⭐</div>' : `<img src="img/${currentPrize.img}" width="140"><h3>${currentPrize.name}</h3>`;
             if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         }, 8200);
     }
@@ -201,91 +213,49 @@
         isBusy = false; sync();
     }
 
-    // --- ОБНОВЛЕННЫЙ CRASH ---
-    let crashActive = false; 
-    let crashVal = 1.0; 
-    let crashTimer; 
-    let currentBet = 0;
-
+    // --- CRASH LOGIC (FIXED) ---
+    let crashActive = false; let crashVal = 1.0; let crashTimer; let currentBet = 0;
     function handleCrash() {
         const btn = document.getElementById('crash-btn');
-        
-        // Кнопка "Забрать"
         if (crashActive) {
             balance += Math.floor(currentBet * crashVal);
             clearInterval(crashTimer); 
             resetCrash(); 
             return;
         }
-
         const bet = parseInt(document.getElementById('bet-input').value);
-        if(!bet || bet < 100 || bet > balance) return alert("Ошибка ставки!");
-
-        // Инициализация игры
-        currentBet = bet; 
-        balance -= bet; 
-        isBusy = true; 
-        crashActive = true; 
-        sync();
-
-        btn.innerText = "ЗАБРАТЬ"; 
-        btn.classList.add('btn-stop');
-
-        // НАСТРОЙКИ ШАНСОВ:
-        // 25% шанс моментального взрыва на 1.00x
-        const isInstant = Math.random() < 0.25; 
-        // Если не моментально, взрыв от 1.05 до 3.50 (более рискованно)
-        const boom = isInstant ? 1.00 : (Math.random() * 2.5 + 1.05).toFixed(2);
-
-        if(isInstant) {
-            finishCrash();
-            return;
-        }
-
-        // ТАЙМЕР (Ускорен)
+        if(!bet || bet < 100 || bet > balance) return;
+        currentBet = bet; balance -= bet; isBusy = true; crashActive = true; sync();
+        btn.innerText = "ЗАБРАТЬ"; btn.classList.add('btn-stop');
+        const boom = (Math.random() < 0.25) ? 1.00 : (Math.random() * 2.5 + 1.05).toFixed(2);
+        if(boom <= 1.00) { finishCrash(); return; }
         crashTimer = setInterval(() => {
-            // Увеличили шаг и уменьшили задержку (30мс вместо 50мс)
             crashVal += 0.02; 
             document.getElementById('mult').innerText = crashVal.toFixed(2) + "x";
-            
-            // Анимация ракеты чуть быстрее
             document.getElementById('rocket').style.transform = `translate(${crashVal*12}px, -${crashVal*12}px)`;
-
-            if(crashVal >= boom) {
-                finishCrash();
-            }
+            if(crashVal >= boom) finishCrash();
         }, 30);
     }
 
     function finishCrash() {
         clearInterval(crashTimer);
-        crashActive = false; // КРИТИЧНО: Сразу выключаем активность, чтобы кнопка "Забрать" не сработала
+        crashActive = false; 
         const btn = document.getElementById('crash-btn');
-        btn.disabled = true; // Блокируем кнопку на время взрыва
-        
+        btn.disabled = true;
         document.getElementById('mult').innerText = "BOOM!";
         document.getElementById('mult').style.color = "var(--red)";
-        
         if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-        
-        setTimeout(() => {
-            btn.disabled = false;
-            resetCrash();
-        }, 2000);
+        setTimeout(() => { btn.disabled = false; resetCrash(); }, 2000);
     }
 
     function resetCrash() {
-        crashActive = false; 
-        isBusy = false; 
-        clearInterval(crashTimer);
+        crashActive = false; isBusy = false; clearInterval(crashTimer);
         const btn = document.getElementById('crash-btn');
-        btn.innerText = "ПОЕХАЛИ!"; 
-        btn.classList.remove('btn-stop');
+        btn.innerText = "ПОЕХАЛИ!"; btn.classList.remove('btn-stop');
         document.getElementById('mult').style.color = "var(--gold)";
         document.getElementById('mult').innerText = "1.00x";
         document.getElementById('rocket').style.transform = "translate(0,0)";
-        crashVal = 1.0; 
-        sync();
+        crashVal = 1.0; sync();
     }
 
     function renderInv() {
@@ -298,12 +268,11 @@
 
     function openAction(idx) {
         const it = inventory[idx]; 
-        const sellPrice = it.sellPrice; 
         document.getElementById('action-modal').style.display = 'flex';
         document.getElementById('action-content').innerHTML = `
             <h3>${it.name}</h3>
-            <p style="color:var(--gold); font-weight:700;">Цена продажи: ${sellPrice} ⭐</p>
-            <button class="btn-main" onclick="sellItem(${idx}, ${sellPrice})">ПРОДАТЬ</button>
+            <p style="color:var(--gold); font-weight:700;">Цена продажи: ${it.sellPrice} ⭐</p>
+            <button class="btn-main" onclick="sellItem(${idx}, ${it.sellPrice})">ПРОДАТЬ</button>
             <button class="btn-main" style="background:#333; color:#fff; margin-top:10px;" onclick="document.getElementById('action-modal').style.display='none'">ОТМЕНА</button>`;
     }
 
