@@ -127,7 +127,6 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Твои новые цены и веса
     const items = [
         {id: 'chill', name: 'Chill Flame', img: 'Chill.png', price: 450, rarity: 25},
         {id: 'mood', name: 'Mood Pack', img: 'Mood.png', price: 650, rarity: 20},
@@ -180,15 +179,15 @@
         tape.style.transform = 'translateX(0)'; 
         tape.innerHTML = '';
         
-        const slotWidth = 140; // 130px + 10px total margin
+        const slotWidth = 140; 
         const winIdx = 45; 
         
+        // 1. Сначала выбираем выигрышный предмет ОДИН РАЗ
+        currentPrize = getRandomItem();
+        
+        // 2. Генерируем ленту, вставляя наш приз строго в winIdx
         for(let i=0; i<60; i++) {
-            let it = getRandomItem();
-            if(i === winIdx) { 
-                currentPrize = getRandomItem(); 
-                it = currentPrize; 
-            }
+            let it = (i === winIdx) ? currentPrize : getRandomItem();
             const content = it.img === '⭐' ? `<div class="slot-emoji">⭐</div>` : `<img src="img/${it.img}">`;
             tape.innerHTML += `<div class="slot">${content}<span>${it.name}</span></div>`;
         }
@@ -196,6 +195,7 @@
         setTimeout(() => {
             tape.style.transition = 'transform 8s cubic-bezier(0.15, 0, 0.05, 1)';
             const centerOffset = window.innerWidth / 2;
+            // Рассчитываем точное смещение до центра winIdx
             const stopPos = (winIdx * slotWidth) + (slotWidth / 2) - centerOffset;
             tape.style.transform = `translateX(-${stopPos}px)`;
         }, 50);
@@ -213,7 +213,6 @@
         isBusy = false; sync();
     }
 
-    // --- CRASH LOGIC ---
     let crashActive = false; let crashVal = 1.0; let crashTimer; let currentBet = 0;
     function handleCrash() {
         const btn = document.getElementById('crash-btn');
@@ -264,11 +263,10 @@
 
     function openAction(idx) {
         const it = inventory[idx]; 
-        const sellPrice = Math.floor(it.price * 0.5); // ТВОЕ ТРЕБОВАНИЕ: x0.5 цена продажи
+        const sellPrice = Math.floor(it.price * 0.5); 
         document.getElementById('action-modal').style.display = 'flex';
         document.getElementById('action-content').innerHTML = `
             <h3>${it.name}</h3>
-            <p style="color:var(--gold); font-weight:700;">Цена покупки: ${it.price} ⭐</p>
             <p style="color:var(--red); font-weight:700;">Цена продажи: ${sellPrice} ⭐</p>
             <button class="btn-main" onclick="sellItem(${idx}, ${sellPrice})">ПРОДАТЬ</button>
             <button class="btn-main" style="background:#333; color:#fff; margin-top:10px;" onclick="document.getElementById('action-modal').style.display='none'">ОТМЕНА</button>`;
