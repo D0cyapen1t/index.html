@@ -141,19 +141,30 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Пул предметов с новыми шансами и названиями
+// Пул предметов с ПОВЫШЕННЫМИ шансами, чтобы они часто мелькали в рулетке
     const items = [
-        {id: 'chill', name: 'Premium: Chill Edition', img: 'Chill.png', price: 1200, rarity: 1},
-        {id: 'mood', name: 'Premium: Mood Vibes', img: 'Mood.png', price: 1500, rarity: 1},
-        {id: 'snoop', name: 'Epic: Snoop Dogg Pack', img: 'Snoop.png', price: 2500, rarity: 1},
-        {id: 'ufc', name: 'Legendary: UFC Fighter', img: 'UFC.png', price: 5000, rarity: 1},
-        {id: 'low', name: 'Mythic: Low Rider', img: 'Low.png', price: 8000, rarity: 0.5},
-        {id: 'voodoo', name: 'Immortal: Voodoo Soul', img: 'Voodoo.png', price: 15000, rarity: 0.5},
-        // Звезды (частый дроп)
+        {id: 'chill', name: 'Premium: Chill Edition', img: 'Chill.png', price: 1200, rarity: 10},
+        {id: 'mood', name: 'Premium: Mood Vibes', img: 'Mood.png', price: 1500, rarity: 8},
+        {id: 'snoop', name: 'Epic: Snoop Dogg Pack', img: 'Snoop.png', price: 2500, rarity: 6},
+        {id: 'ufc', name: 'Legendary: UFC Fighter', img: 'UFC.png', price: 5000, rarity: 4},
+        {id: 'low', name: 'Mythic: Low Rider', img: 'Low.png', price: 8000, rarity: 3},
+        {id: 'voodoo', name: 'Immortal: Voodoo Soul', img: 'Voodoo.png', price: 15000, rarity: 2},
+        // Звезды (теперь занимают меньше места в общем пуле, чтобы подарки были видны)
         {id: 's50', name: 'Pack: 50 Stars', img: '⭐', val: 50, rarity: 30},
-        {id: 's150', name: 'Pack: 150 Stars', img: '⭐', val: 150, rarity: 20},
-        {id: 's400', name: 'Pack: 400 Stars', img: '⭐', val: 400, rarity: 10}
+        {id: 's150', name: 'Pack: 150 Stars', img: '⭐', val: 150, rarity: 25},
+        {id: 's400', name: 'Pack: 400 Stars', img: '⭐', val: 400, rarity: 12}
     ];
+
+    // Функция выбора случайного предмета на основе весов
+    function getRandomItem() {
+        const totalRarity = items.reduce((acc, it) => acc + it.rarity, 0);
+        let rand = Math.random() * totalRarity;
+        for (const it of items) {
+            if (rand < it.rarity) return it;
+            rand -= it.rarity;
+        }
+        return items[0]; // На всякий случай возвращаем первый
+    }
 
     function getRandomItem() {
         const totalRarity = items.reduce((acc, it) => acc + it.rarity, 0);
