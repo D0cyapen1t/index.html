@@ -2,152 +2,166 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --gold: #ffcf4b; --dark: #0a0a0a; --gray: #1a1a1a; }
-        body { background: var(--dark); color: white; font-family: 'Inter', sans-serif; margin: 0; padding-bottom: 80px; overflow-x: hidden; }
+        :root { --gold: #FFD700; --bg: #0a0a0a; --card: #151515; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
         
-        /* Navbar */
-        .nav { position: fixed; bottom: 15px; left: 5%; width: 90%; height: 65px; background: rgba(25,25,25,0.9); backdrop-filter: blur(10px); border-radius: 20px; display: flex; border: 1px solid #333; box-shadow: 0 10px 20px rgba(0,0,0,0.5); z-index: 100; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #666; transition: 0.3s; }
-        .nav-item.active { color: var(--gold); transform: translateY(-5px); }
-        .nav-item i { font-size: 20px; margin-bottom: 4px; }
+        .header { padding: 20px; text-align: center; background: #111; border-bottom: 2px solid var(--gold); }
+        .balance { font-size: 26px; font-weight: 800; color: var(--gold); }
 
-        /* Sections */
-        .section { display: none; padding: 20px; animation: fadeIn 0.5s ease; }
-        .active-section { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .section { display: none; height: 80vh; padding: 20px; overflow-y: auto; }
+        .active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Case Card */
-        .case-card { background: linear-gradient(145deg, #161616, #0f0f0f); border: 1px solid #222; border-radius: 25px; padding: 20px; margin-bottom: 20px; position: relative; overflow: hidden; }
-        .case-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+        .case-card { background: var(--card); border-radius: 20px; padding: 25px; margin-bottom: 20px; text-align: center; border: 1px solid #222; }
         
-        /* Roulette Area */
-        .roulette-wrapper { width: 100%; height: 110px; background: #000; border-radius: 15px; margin: 15px 0; overflow: hidden; position: relative; border: 1px solid #333; }
-        .pointer { position: absolute; left: 50%; top: 0; width: 2px; height: 100%; background: var(--gold); z-index: 10; box-shadow: 0 0 15px var(--gold); }
-        .tape { display: flex; transition: transform 4s cubic-bezier(0.1, 0, 0, 1); will-change: transform; }
-        .slot { min-width: 90px; height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #111; }
-        .slot img { width: 60px; height: 60px; filter: drop-shadow(0 0 5px rgba(255,207,75,0.2)); }
-        .slot span { font-size: 9px; margin-top: 5px; color: #888; }
+        /* Roulette */
+        .roulette-container { position: relative; width: 100%; height: 130px; background: #000; border-radius: 15px; margin: 20px 0; overflow: hidden; border: 1px solid #333; }
+        .pointer { position: absolute; left: 50%; top: 0; width: 4px; height: 100%; background: var(--gold); z-index: 10; transform: translateX(-50%); box-shadow: 0 0 20px var(--gold); }
+        .tape { display: flex; transition: transform 5s cubic-bezier(0.1, 0, 0, 1); align-items: center; }
+        .slot { min-width: 110px; height: 110px; display: flex; align-items: center; justify-content: center; border-right: 1px solid #111; }
+        .slot img { width: 85px; height: 85px; object-fit: contain; }
 
-        /* Stats */
-        .balance-badge { background: var(--gray); padding: 8px 15px; border-radius: 50px; border: 1px solid var(--gold); color: var(--gold); font-weight: bold; display: inline-block; }
-        .btn-main { background: var(--gold); color: black; border: none; width: 100%; padding: 15px; border-radius: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; }
-        .btn-main:disabled { background: #444; color: #888; }
+        /* Nav */
+        .nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: #111; display: flex; border-top: 1px solid #222; }
+        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #555; font-size: 11px; cursor: pointer; }
+        .nav-btn.active-tab { color: var(--gold); font-weight: bold; }
 
-        /* Inventory */
-        .inv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .inv-item { background: #111; border-radius: 12px; padding: 10px; border: 1px solid #222; }
+        .btn-open { background: linear-gradient(180deg, #FFD700 0%, #b8860b 100%); color: #000; border: none; width: 100%; padding: 18px; border-radius: 15px; font-weight: 900; font-size: 16px; text-transform: uppercase; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2); }
+        .btn-open:disabled { background: #333; color: #666; box-shadow: none; }
+
+        .inv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .inv-item { background: #1a1a1a; padding: 10px; border-radius: 12px; border: 1px solid #252525; text-align: center; font-size: 10px; }
         .inv-item img { width: 100%; }
     </style>
 </head>
 <body>
 
-    <div id="ui-menu" class="section active-section">
-        <h1 style="color: var(--gold)">LYDKA</h1>
-        <p style="color: #666">Premium Gambling Experience</p>
-        <div class="balance-badge">⭐ <span id="user-balance">500</span></div>
+    <div class="header">
+        <div class="balance">⭐ <span id="val-balance">0</span></div>
     </div>
 
-    <div id="ui-cases" class="section">
+    <div id="m-menu" class="section active">
         <div class="case-card">
-            <h3>PREMIUM CASE</h3>
-            <div class="roulette-wrapper">
+            <h1 style="margin: 0; color: var(--gold);">LYDKA</h1>
+            <p style="color: #666;">Добро пожаловать, игрок.</p>
+        </div>
+    </div>
+
+    <div id="m-cases" class="section">
+        <div class="case-card">
+            <h2 style="margin: 0;">КЕЙС: РУЛЕТКА</h2>
+            <div class="roulette-container">
                 <div class="pointer"></div>
                 <div id="tape" class="tape"></div>
             </div>
-            <button class="btn-main" id="spin-btn" onclick="play('roulette')">ОТКРЫТЬ — 500 ⭐</button>
+            <button class="btn-open" id="btn-spin" onclick="spin()">ОТКРЫТЬ — 500 ⭐</button>
         </div>
 
         <div class="case-card">
-            <h3>DOUBLE OR NOTHING (50/50)</h3>
-            <p>Voodoo Doll или Ничего</p>
-            <button class="btn-main" onclick="play('5050')">РИСКНУТЬ — 500 ⭐</button>
+            <h2 style="margin: 0;">50 / 50</h2>
+            <p style="color: #888;">Voodoo Doll или Пусто</p>
+            <button class="btn-open" id="btn-50" onclick="spin50()">ОТКРЫТЬ — 500 ⭐</button>
         </div>
     </div>
 
-    <div id="ui-profile" class="section">
-        <h3>МОЙ ПРОФИЛЬ</h3>
-        <div class="balance-badge" style="margin-bottom: 20px;">БАЛАНС: <span id="prof-balance">500</span> ⭐</div>
-        <div class="inv-grid" id="inventory">
-            </div>
+    <div id="m-profile" class="section">
+        <h3 style="color: var(--gold);">МОЙ ИНВЕНТАРЬ</h3>
+        <div class="inv-grid" id="inventory"></div>
     </div>
 
     <nav class="nav">
-        <div class="nav-item" onclick="show('menu')"><i>🏠</i>МЕНЮ</div>
-        <div class="nav-item" onclick="show('cases')"><i>📦</i>КЕЙСЫ</div>
-        <div class="nav-item" onclick="show('profile')"><i>👤</i>ПРОФИЛЬ</div>
+        <div class="nav-btn" onclick="nav('menu')">🏠 Меню</div>
+        <div class="nav-btn" onclick="nav('cases')">📦 Кейсы</div>
+        <div class="nav-btn" onclick="nav('profile')">👤 Профиль</div>
     </nav>
 
     <script>
-        let balance = 1500; // Для теста. В реальности берем из БД через API.
-        const items = [
-            {n: "Chill Flame", img: "https://tgstars.tg/nft/image?name=ChillFlame"},
-            {n: "Mood Pack", img: "https://tgstars.tg/nft/image?name=MoodPack"},
-            {n: "Snoop Dogs", img: "https://tgstars.tg/nft/image?name=SnoopDogs"},
-            {n: "UFC Strike", img: "https://tgstars.tg/nft/image?name=UFCStrike"},
-            {n: "Low Rider", img: "https://tgstars.tg/nft/image?name=LowRider"},
-            {n: "Voodoo Doll", img: "https://tgstars.tg/nft/image?name=VoodooDoll"},
-            {n: "Stars", img: "https://static.tildacdn.com/bolt3233-3134-4061-b430-376535316439/star.png", stars: 750}
+        const tg = window.Telegram.WebApp;
+        let balance = 1000; // В проде получаем через API
+        let spinning = false;
+
+        const pool = [
+            {id: 'chill', n: 'Chill Flame', img: 'Chill.png', t: 'nft'},
+            {id: 'mood', n: 'Mood Pack', img: 'Mood.png', t: 'nft'},
+            {id: 'snoop', n: 'Snoop Dogs', img: 'Snoop.png', t: 'nft'},
+            {id: 'ufc', n: 'UFC Strike', img: 'UFC.png', t: 'nft'},
+            {id: 'low', n: 'Low Rider', img: 'Low.png', t: 'nft'},
+            {id: 'voodoo', n: 'Voodoo Doll', img: 'Voodoo.png', t: 'nft'},
+            {id: 'stars', n: 'Stars', img: 'Stars.png', t: 'stars', v: 1000},
+            {id: 'empty', n: 'Пусто', img: '', t: 'empty'}
         ];
 
-        function updateUI() {
-            document.getElementById('user-balance').innerText = balance;
-            document.getElementById('prof-balance').innerText = balance;
-            document.getElementById('spin-btn').disabled = balance < 500;
+        function update() {
+            document.getElementById('val-balance').innerText = balance;
+            document.getElementById('btn-spin').disabled = (balance < 500 || spinning);
+            document.getElementById('btn-50').disabled = (balance < 500 || spinning);
         }
 
-        function show(id) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active-section'));
-            document.getElementById('ui-'+id).classList.add('active-section');
+        function nav(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById('m-' + id).classList.add('active');
         }
 
-        function play(type) {
-            if(balance < 500) return alert("Недостаточно звезд!");
+        function spin() {
+            if (balance < 500 || spinning) return;
             
-            balance -= 500;
-            updateUI();
+            spinning = true;
+            balance -= 500; // ЖЕСТКОЕ СПИСАНИЕ СРАЗУ
+            update();
 
             const tape = document.getElementById('tape');
-            tape.style.transition = "none";
-            tape.style.transform = "translateX(0)";
+            tape.style.transition = 'none';
+            tape.style.transform = 'translateX(0)';
             tape.innerHTML = '';
 
-            // Создаем ленту
-            for(let i=0; i<60; i++) {
-                const item = items[Math.floor(Math.random()*items.length)];
-                tape.innerHTML += `<div class="slot"><img src="${item.img}"><span>${item.n}</span></div>`;
+            // Генерируем 70 случайных слотов
+            for(let i=0; i<70; i++) {
+                const item = pool[Math.floor(Math.random() * pool.length)];
+                tape.innerHTML += `<div class="slot">${item.img ? `<img src="img/${item.img}">` : '❌'}</div>`;
             }
 
-            const winIndex = 55;
-            const winItem = items[Math.floor(Math.random()*items.length)];
-            const slots = tape.querySelectorAll('.slot');
-            slots[winIndex].innerHTML = `<img src="${winItem.img}"><span>${winItem.n}</span>`;
+            const winIdx = 65;
+            const winner = pool[Math.floor(Math.random() * (pool.length - 1))];
+            tape.querySelectorAll('.slot')[winIdx].innerHTML = winner.img ? `<img src="img/${winner.img}">` : '❌';
 
             setTimeout(() => {
-                tape.style.transition = "transform 4s cubic-bezier(0.1, 0, 0, 1)";
-                const x = (winIndex * 90) - (window.innerWidth / 2) + 45;
-                tape.style.transform = `translateX(-${x}px)`;
+                tape.style.transition = 'transform 5s cubic-bezier(0.1, 0, 0, 1)';
+                const shift = (winIdx * 110) - (tape.parentElement.offsetWidth / 2) + 55;
+                tape.style.transform = `translateX(-${shift}px)`;
             }, 50);
 
             setTimeout(() => {
-                handleWin(winItem);
-            }, 4500);
+                spinning = false;
+                finish(winner);
+                update();
+            }, 5500);
         }
 
-        function handleWin(item) {
-            if(item.stars) {
-                balance += item.stars;
-                alert(`Вы выиграли ${item.stars} звезд!`);
-            } else {
-                const inv = document.getElementById('inventory');
-                inv.innerHTML += `<div class="inv-item"><img src="${item.img}"><br><small>${item.n}</small></div>`;
-                alert(`Вы выиграли NFT: ${item.n}`);
+        function spin50() {
+            if (balance < 500 || spinning) return;
+            balance -= 500;
+            update();
+            const win = Math.random() > 0.5;
+            const res = win ? pool.find(p => p.id === 'voodoo') : pool.find(p => p.id === 'empty');
+            alert(win ? "Выпало: Voodoo Doll!" : "Выпало: Пусто");
+            finish(res);
+            update();
+        }
+
+        function finish(item) {
+            if (item.t === 'stars') balance += item.v;
+            if (item.t === 'nft') {
+                document.getElementById('inventory').innerHTML += `
+                    <div class="inv-item"><img src="img/${item.img}"><br>${item.n}</div>
+                `;
             }
-            updateUI();
+            tg.sendData(JSON.stringify({win: item.id}));
         }
 
-        updateUI();
+        update();
     </script>
 </body>
 </html>
