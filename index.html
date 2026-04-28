@@ -5,49 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --gold: #FFD700; --bg: #050505; --card: #121212; }
-        body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 0; overflow: hidden; }
-        .header { padding: 15px; text-align: center; border-bottom: 1px solid var(--gold); background: #000; }
-        .balance-box { font-size: 24px; color: var(--gold); font-weight: bold; }
-        
-        .section { display: none; height: 80vh; padding: 20px; text-align: center; }
+        :root { --gold: #FFD700; --bg: #050505; }
+        body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 0; overflow: hidden; text-align: center; }
+        .header { padding: 15px; border-bottom: 2px solid var(--gold); background: #000; font-size: 24px; font-weight: bold; color: var(--gold); }
+        .section { display: none; height: 80vh; padding: 20px; }
         .active { display: block; }
-
-        .roulette-container { position: relative; width: 100%; height: 120px; background: #111; border: 1px solid #333; margin: 20px 0; overflow: hidden; border-radius: 10px; }
+        .roulette { position: relative; width: 100%; height: 120px; background: #111; border: 1px solid #333; margin: 20px 0; overflow: hidden; border-radius: 10px; }
         .pointer { position: absolute; left: 50%; top: 0; width: 2px; height: 100%; background: var(--gold); z-index: 5; transform: translateX(-50%); box-shadow: 0 0 10px var(--gold); }
         .tape { display: flex; transition: transform 5s cubic-bezier(0.1, 0, 0, 1); align-items: center; }
         .slot { min-width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; }
         .slot img { width: 80px; height: 80px; object-fit: contain; }
-
-        .btn { background: var(--gold); color: #000; border: none; width: 100%; padding: 15px; border-radius: 10px; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        .btn { background: var(--gold); color: #000; border: none; width: 100%; padding: 15px; border-radius: 10px; font-weight: bold; font-size: 18px; cursor: pointer; }
         .btn:disabled { background: #333; color: #666; }
-
-        .nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #111; display: flex; border-top: 1px solid #222; }
-        .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #555; cursor: pointer; }
-        .nav-item.active-nav { color: var(--gold); }
-        
+        .nav { position: fixed; bottom: 0; width: 100%; height: 60px; background: #111; display: flex; border-top: 1px solid #222; }
+        .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; color: #555; cursor: pointer; font-size: 14px; }
+        .nav-item.active-nav { color: var(--gold); font-weight: bold; }
         .inv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .inv-card { background: #1a1a1a; padding: 5px; border-radius: 5px; font-size: 10px; }
+        .inv-card { background: #1a1a1a; padding: 5px; border-radius: 5px; font-size: 10px; border: 1px solid #333; }
         .inv-card img { width: 100%; }
     </style>
 </head>
 <body>
 
-    <div class="header"><div class="balance-box">⭐ <span id="display-balance">0</span></div></div>
+    <div class="header">⭐ <span id="b-val">0</span></div>
 
-    <div id="s-menu" class="section active"><h1>Lydka</h1><p>VIP CLUB</p></div>
+    <div id="m-menu" class="section active"><h1>LYDKA</h1><p>VIP EDITION</p></div>
 
-    <div id="s-cases" class="section">
-        <div class="roulette-container">
+    <div id="m-cases" class="section">
+        <div class="roulette">
             <div class="pointer"></div>
             <div id="tape" class="tape"></div>
         </div>
-        <button class="btn" id="btn-spin" onclick="runSpin()">ОТКРЫТЬ (500 ⭐)</button>
+        <button class="btn" id="spin-btn" onclick="spin()">ОТКРЫТЬ (500 ⭐)</button>
     </div>
 
-    <div id="s-profile" class="section">
-        <h3>МОЙ ИНВЕНТАРЬ</h3>
-        <div id="inventory" class="inv-grid"></div>
+    <div id="m-profile" class="section">
+        <h3>ИНВЕНТАРЬ</h3>
+        <div id="inv" class="inv-grid"></div>
     </div>
 
     <nav class="nav">
@@ -58,11 +52,9 @@
 
     <script>
         const tg = window.Telegram.WebApp;
-        
-        // Получаем баланс из ссылки (URLSearchParams)
         const params = new URLSearchParams(window.location.search);
         let balance = parseInt(params.get('balance')) || 0;
-        let isSpinning = false;
+        let spinning = false;
 
         const pool = [
             {id: 'chill', n: 'Chill Flame', img: 'Chill.png'},
@@ -71,32 +63,30 @@
             {id: 'ufc', n: 'UFC Strike', img: 'UFC.png'},
             {id: 'low', n: 'Low Rider', img: 'Low.png'},
             {id: 'voodoo', n: 'Voodoo Doll', img: 'Voodoo.png'},
-            {id: 'stars', n: '1000 Stars', img: 'Stars.png'}
+            {id: 'stars', n: 'Stars', img: 'Stars.png'}
         ];
 
-        function updateUI() {
-            document.getElementById('display-balance').innerText = balance;
-            document.getElementById('btn-spin').disabled = (balance < 500 || isSpinning);
+        function update() {
+            document.getElementById('b-val').innerText = balance;
+            document.getElementById('spin-btn').disabled = (balance < 500 || spinning);
         }
 
         function tab(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById('s-' + id).classList.add('active');
+            document.getElementById('m-' + id).classList.add('active');
         }
 
-        function runSpin() {
-            if(balance < 500 || isSpinning) return;
-            
-            isSpinning = true;
-            balance -= 500; // Визуально отнимаем сразу
-            updateUI();
+        function spin() {
+            if(balance < 500 || spinning) return;
+            spinning = true;
+            balance -= 500;
+            update();
 
             const tape = document.getElementById('tape');
             tape.style.transition = 'none';
             tape.style.transform = 'translateX(0)';
             tape.innerHTML = '';
 
-            // Генерируем ленту
             for(let i=0; i<60; i++) {
                 const it = pool[Math.floor(Math.random() * pool.length)];
                 tape.innerHTML += `<div class="slot"><img src="img/${it.img}"></div>`;
@@ -113,21 +103,19 @@
             }, 50);
 
             setTimeout(() => {
-                isSpinning = false;
+                spinning = false;
                 if(winner.id === 'stars') balance += 1000;
                 else {
-                    document.getElementById('inventory').innerHTML += `
+                    document.getElementById('inv').innerHTML += `
                         <div class="inv-card"><img src="img/${winner.img}"><p>${winner.n}</p></div>
                     `;
                 }
-                updateUI();
-                
-                // ОТПРАВЛЯЕМ ДАННЫЕ В БОТА
+                update();
                 tg.sendData(JSON.stringify({action: "spin_done", win_id: winner.id}));
             }, 5500);
         }
 
-        updateUI();
+        update();
     </script>
 </body>
 </html>
