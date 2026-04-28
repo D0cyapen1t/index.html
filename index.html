@@ -6,326 +6,234 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { 
-            --gold: #ffca28; --gold-glow: rgba(255, 202, 40, 0.4);
-            --bg: #0b0d10; --card: #161920; 
+            --gold: #ffca28; --bg: #0b0d10; --card: #161920; 
             --accent: #232731; --red: #ff4757; --green: #2ed573;
         }
+        body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; margin: 0; padding: 0; overflow: hidden; }
         
-        body { 
-            background: var(--bg); color: #fff; font-family: 'Inter', -apple-system, sans-serif; 
-            margin: 0; padding: 0; overflow: hidden; user-select: none;
-        }
-
-        /* --- UI ELEMENTS --- */
-        .header { 
-            padding: 15px; background: rgba(0,0,0,0.6); backdrop-filter: blur(15px);
-            border-bottom: 1px solid var(--accent); display: flex; justify-content: center;
-        }
-        .balance-pill {
-            background: linear-gradient(145deg, #1e222a, #161920); border: 1px solid var(--gold);
-            padding: 8px 24px; border-radius: 50px; font-size: 20px; font-weight: 900; color: var(--gold);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5), inset 0 0 10px var(--gold-glow);
-        }
+        .header { padding: 15px; background: rgba(0,0,0,0.6); backdrop-filter: blur(15px); border-bottom: 1px solid var(--accent); display: flex; justify-content: center; }
+        .balance-pill { background: #161920; border: 1px solid var(--gold); padding: 8px 25px; border-radius: 50px; font-size: 20px; font-weight: 900; color: var(--gold); box-shadow: 0 0 15px rgba(255,202,40,0.2); }
 
         .section { display: none; height: 82vh; padding: 15px; box-sizing: border-box; overflow-y: auto; }
-        .active { display: block; animation: sectionFade 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        @keyframes sectionFade { from {opacity: 0; transform: scale(0.98);} to {opacity: 1; transform: scale(1);} }
+        .active { display: block; }
 
-        /* --- MODERN ROULETTE --- */
-        .roulette-container {
-            position: relative; width: 100%; height: 180px; background: #050608; 
-            border-radius: 24px; overflow: hidden; border: 2px solid var(--accent);
-            box-shadow: inset 0 0 40px #000; margin-top: 10px;
-        }
-        .pointer {
-            position: absolute; left: 50%; top: 0; width: 3px; height: 100%; 
-            background: var(--gold); z-index: 20; transform: translateX(-50%);
-            box-shadow: 0 0 25px var(--gold);
-        }
-        .pointer::after {
-            content: ''; position: absolute; top: -5px; left: -6px; 
-            border-left: 8px solid transparent; border-right: 8px solid transparent;
-            border-top: 10px solid var(--gold);
-        }
+        /* ROULETTE */
+        .roulette-container { position: relative; width: 100%; height: 180px; background: #050608; border-radius: 24px; overflow: hidden; border: 2px solid var(--accent); margin-top: 10px; }
+        .pointer { position: absolute; left: 50%; top: 0; width: 4px; height: 100%; background: var(--gold); z-index: 20; transform: translateX(-50%); box-shadow: 0 0 20px var(--gold); }
         .tape { display: flex; align-items: center; height: 100%; will-change: transform; }
-        .slot {
-            min-width: 125px; height: 140px; display: flex; flex-direction: column; align-items: center; 
-            justify-content: center; background: linear-gradient(180deg, #1c212a 0%, #13171e 100%);
-            margin: 0 6px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.05);
-            transition: transform 0.3s;
-        }
-        .slot img, .slot-emoji { width: 70px; height: 70px; object-fit: contain; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); }
+        .slot { min-width: 130px; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #1c212a; margin: 0 5px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.05); }
+        .slot img, .slot-emoji { width: 70px; height: 70px; object-fit: contain; }
         .slot-emoji { font-size: 50px; display: flex; align-items: center; justify-content: center; }
-        .slot span { font-size: 11px; font-weight: 700; margin-top: 10px; color: #a0a8b3; text-transform: uppercase; letter-spacing: 0.5px; }
+        .slot span { font-size: 11px; font-weight: 700; margin-top: 10px; color: #a0a8b3; text-transform: uppercase; }
 
-        /* --- MODERN CRASH --- */
-        .crash-viewport {
-            background: radial-gradient(circle at center, #1a1e26 0%, #090a0d 100%);
-            border-radius: 24px; height: 240px; position: relative; border: 2px solid var(--accent);
-            display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 20px;
-        }
-        .grid-bg {
-            position: absolute; width: 100%; height: 100%; 
-            background-image: linear-gradient(var(--accent) 1px, transparent 1px), linear-gradient(90deg, var(--accent) 1px, transparent 1px);
-            background-size: 40px 40px; opacity: 0.2;
-        }
-        #multiplier { font-size: 64px; font-weight: 900; color: var(--gold); z-index: 10; font-variant-numeric: tabular-nums; }
-        .rocket-ship { position: absolute; bottom: 20px; left: 20px; font-size: 45px; transition: 0.1s linear; filter: drop-shadow(0 0 15px var(--gold)); }
+        /* CRASH */
+        .crash-viewport { background: #090a0d; border-radius: 24px; height: 220px; position: relative; border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 20px; }
+        #multiplier { font-size: 60px; font-weight: 900; color: var(--gold); z-index: 10; }
+        .rocket-ship { position: absolute; bottom: 20px; left: 20px; font-size: 40px; transition: 0.1s linear; }
 
-        /* --- BUTTONS & INPUTS --- */
-        .input-box {
-            background: var(--card); border: 1px solid var(--accent); border-radius: 16px;
-            padding: 14px; color: #fff; width: 100%; box-sizing: border-box; 
-            font-size: 16px; margin-bottom: 12px; outline: none; text-align: center;
-        }
-        .btn-main {
-            background: linear-gradient(135deg, #ffca28 0%, #ff8f00 100%);
-            color: #000; border: none; width: 100%; padding: 18px; border-radius: 16px;
-            font-weight: 800; font-size: 17px; text-transform: uppercase; cursor: pointer;
-            box-shadow: 0 6px 20px rgba(255, 143, 0, 0.3); transition: 0.2s;
-        }
-        .btn-main:active { transform: translateY(2px); box-shadow: none; }
-        .btn-main:disabled { background: #2c303a; color: #555; box-shadow: none; }
-        .btn-stop { background: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%); color: #fff; box-shadow: 0 6px 20px rgba(255, 71, 87, 0.3); }
+        .btn-main { background: linear-gradient(135deg, #ffca28, #ff8f00); color: #000; border: none; width: 100%; padding: 18px; border-radius: 16px; font-weight: 800; font-size: 16px; text-transform: uppercase; cursor: pointer; }
+        .btn-main:disabled { background: #2c303a; color: #555; }
+        
+        .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-win { background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid var(--gold); text-align: center; width: 80%; }
 
-        /* --- MODAL --- */
-        .modal-overlay {
-            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 1000;
-            align-items: center; justify-content: center;
-        }
-        .modal-win {
-            background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid var(--gold);
-            text-align: center; width: 85%; animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        @keyframes modalPop { from {transform: scale(0.5); opacity: 0;} to {transform: scale(1); opacity: 1;} }
-
-        /* --- NAV --- */
-        .navbar {
-            position: fixed; bottom: 0; width: 100%; height: 75px; 
-            background: rgba(22, 25, 32, 0.9); backdrop-filter: blur(20px);
-            display: flex; border-top: 1px solid var(--accent);
-        }
+        .navbar { position: fixed; bottom: 0; width: 100%; height: 75px; background: #161920; display: flex; border-top: 1px solid var(--accent); }
         .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #5b626e; font-size: 11px; font-weight: 700; }
         .nav-btn.active { color: var(--gold); }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="balance-pill">⭐ <span id="user-bal">0</span></div>
-</div>
+<div class="header"><div class="balance-pill">⭐ <span id="balance-display">0</span></div></div>
 
-<div id="win-overlay" class="modal-overlay">
+<div id="win-modal" class="modal-overlay">
     <div class="modal-win">
-        <h1 style="margin:0; color:var(--gold); font-size:28px;">ВЫИГРЫШ</h1>
-        <div id="win-res" style="padding: 25px 0;"></div>
-        <button class="btn-main" onclick="collectReward()">ЗАБРАТЬ ПРИЗ</button>
+        <h2 style="color:var(--gold); margin:0;">ВЫИГРЫШ!</h2>
+        <div id="win-content" style="padding: 20px 0;"></div>
+        <button class="btn-main" onclick="claimReward()">ЗАБРАТЬ</button>
     </div>
 </div>
 
-<div id="action-overlay" class="modal-overlay">
-    <div class="modal-win" id="action-box"></div>
+<div id="action-modal" class="modal-overlay">
+    <div class="modal-win" id="action-content"></div>
 </div>
 
 <div id="tab-roulette" class="section active">
     <div class="roulette-container">
         <div class="pointer"></div>
-        <div id="tape-anim" class="tape"></div>
+        <div id="tape" class="tape"></div>
     </div>
-    <div style="margin-top:25px;">
-        <button class="btn-main" id="spin-control" onclick="launchRoulette()">ОТКРЫТЬ КЕЙС (500 ⭐)</button>
-    </div>
+    <button class="btn-main" id="spin-btn" style="margin-top:20px;" onclick="startRoulette()">ОТКРЫТЬ КЕЙС (500 ⭐)</button>
 </div>
 
 <div id="tab-crash" class="section">
     <div class="crash-viewport">
-        <div class="grid-bg"></div>
         <div id="multiplier">1.00x</div>
-        <div id="rocket-obj" class="rocket-ship">🚀</div>
+        <div id="rocket" class="rocket-ship">🚀</div>
     </div>
-    <input type="number" id="bet-input" class="input-box" placeholder="Сумма ставки...">
-    <button class="btn-main" id="crash-control" onclick="handleCrash()">ВЗЛЕТАЕМ</button>
+    <input type="number" id="bet-amount" style="width:100%; padding:15px; background:#1c212a; border:1px solid #333; color:#fff; border-radius:12px; margin-bottom:15px;" placeholder="Ставка...">
+    <button class="btn-main" id="crash-btn" onclick="startCrash()">ВЗЛЕТАЕМ</button>
 </div>
 
 <div id="tab-inv" class="section">
-    <h2 style="margin-bottom:20px; font-size:20px; color:var(--gold);">ВАШИ NFT ПОДАРКИ</h2>
-    <div id="items-list" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;"></div>
+    <h3 style="color:var(--gold);">ИНВЕНТАРЬ</h3>
+    <div id="inv-list" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;"></div>
 </div>
 
 <nav class="navbar">
-    <div class="nav-btn active" onclick="navigate('roulette')">📦 КЕЙСЫ</div>
-    <div class="nav-btn" onclick="navigate('crash')">🚀 КРАШ</div>
-    <div class="nav-btn" onclick="navigate('inv')">👤 ПРОФИЛЬ</div>
+    <div class="nav-btn active" onclick="nav('roulette')">📦 КЕЙСЫ</div>
+    <div class="nav-btn" onclick="nav('crash')">🚀 КРАШ</div>
+    <div class="nav-btn" onclick="nav('inv')">👤 ПРОФИЛЬ</div>
 </nav>
 
 <script>
-    const webApp = window.Telegram.WebApp;
-    webApp.expand();
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-    // Константы
-    const NFT_DATA = [
+    const items = [
         {id: 'chill', name: 'Chill', img: 'Chill.png', price: 300},
         {id: 'mood', name: 'Mood', img: 'Mood.png', price: 450},
         {id: 'snoop', name: 'Snoop', img: 'Snoop.png', price: 600},
-        {id: 'ufc', name: 'UFC', img: 'UFC.png', price: 850},
-        {id: 'low', name: 'Low', img: 'Low.png', price: 1100},
-        {id: 'voodoo', name: 'Voodoo', img: 'Voodoo.png', price: 1600},
+        {id: 'ufc', name: 'UFC', img: 'UFC.png', price: 800},
+        {id: 'low', name: 'Low', img: 'Low.png', price: 1000},
+        {id: 'voodoo', name: 'Voodoo', img: 'Voodoo.png', price: 1500},
         {id: 'stars', name: '1000 Stars', img: '⭐', price: 0}
     ];
 
-    // Состояние
-    let balance = parseInt(new URLSearchParams(window.location.search).get('balance')) || parseInt(localStorage.getItem('saved_bal')) || 0;
-    let inventory = JSON.parse(localStorage.getItem('saved_inv')) || [];
-    let isBusy = false;
-    let pendingPrize = null;
-
-    function refreshUI() {
-        localStorage.setItem('saved_bal', balance);
-        localStorage.setItem('saved_inv', JSON.stringify(inventory));
-        document.getElementById('user-bal').innerText = balance;
-        document.getElementById('spin-control').disabled = (balance < 500 || isBusy);
+    // --- ЛОГИКА БАЛАНСА (ФИКС 2000) ---
+    const urlParams = new URLSearchParams(window.location.search);
+    let balance = parseInt(urlParams.get('balance'));
+    
+    // Если в URL пусто, проверяем память. Если и там пусто - СТРОГО 0.
+    if (isNaN(balance)) {
+        balance = localStorage.getItem('user_balance') !== null ? parseInt(localStorage.getItem('user_balance')) : 0;
     }
 
-    function navigate(name) {
-        if(isBusy && name !== 'roulette' && name !== 'crash') return;
+    let inventory = JSON.parse(localStorage.getItem('user_inv')) || [];
+    let isRolling = false;
+    let winItem = null;
+
+    function sync() {
+        localStorage.setItem('user_balance', balance);
+        localStorage.setItem('user_inv', JSON.stringify(inventory));
+        document.getElementById('balance-display').innerText = balance;
+        document.getElementById('spin-btn').disabled = (balance < 500 || isRolling);
+    }
+
+    function nav(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById('tab-' + name).classList.add('active');
+        document.getElementById('tab-' + id).classList.add('active');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         event.currentTarget.classList.add('active');
-        if(name === 'inv') updateInvDisplay();
+        if(id === 'inv') renderInv();
     }
 
-    // --- ROULETTE LOGIC ---
-    function launchRoulette() {
-        if(balance < 500 || isBusy) return;
-        balance -= 500; isBusy = true; refreshUI();
+    // --- РУЛЕТКА (ФИКС ТОЧНОСТИ) ---
+    function startRoulette() {
+        if(balance < 500 || isRolling) return;
+        balance -= 500; isRolling = true; sync();
 
-        const tape = document.getElementById('tape-anim');
-        tape.style.transition = 'none'; tape.style.transform = 'translateX(0)'; tape.innerHTML = '';
+        const tape = document.getElementById('tape');
+        tape.style.transition = 'none';
+        tape.style.transform = 'translateX(0)';
+        tape.innerHTML = '';
 
-        for(let i=0; i<70; i++) {
-            const it = NFT_DATA[Math.floor(Math.random()*NFT_DATA.length)];
+        const slotWidth = 140; // 130px + 10px margin
+        for(let i=0; i<80; i++) {
+            const it = items[Math.floor(Math.random()*items.length)];
             tape.innerHTML += `<div class="slot">${it.img === '⭐' ? '<div class="slot-emoji">⭐</div>' : `<img src="img/${it.img}">`}<span>${it.name}</span></div>`;
         }
 
-        const winnerIdx = 62;
-        pendingPrize = NFT_DATA[Math.floor(Math.random()*NFT_DATA.length)];
-        tape.querySelectorAll('.slot')[winnerIdx].innerHTML = `${pendingPrize.img === '⭐' ? '<div class="slot-emoji">⭐</div>' : `<img src="img/${pendingPrize.img}">`}<span>${pendingPrize.name}</span>`;
+        const winIdx = 70;
+        winItem = items[Math.floor(Math.random()*items.length)];
+        const slots = tape.querySelectorAll('.slot');
+        slots[winIdx].innerHTML = `${winItem.img === '⭐' ? '<div class="slot-emoji">⭐</div>' : `<img src="img/${winItem.img}">`}<span>${winItem.name}</span>`;
 
         setTimeout(() => {
             tape.style.transition = 'transform 6s cubic-bezier(0.1, 0, 0.05, 1)';
-            const finalShift = (winnerIdx * 137) - (window.innerWidth / 2) + 68;
-            tape.style.transform = `translateX(-${finalShift}px)`;
+            // Центрирование: (индекс * ширина) - (половина экрана) + (половина слота)
+            const stopAt = (winIdx * slotWidth) - (window.innerWidth / 2) + (slotWidth / 2);
+            tape.style.transform = `translateX(-${stopAt}px)`;
         }, 50);
 
         setTimeout(() => {
-            document.getElementById('win-overlay').style.display = 'flex';
-            document.getElementById('win-res').innerHTML = `
-                ${pendingPrize.img === '⭐' ? '<div style="font-size:90px">⭐</div>' : `<img src="img/${pendingPrize.img}" style="width:130px">`}
-                <h2 style="margin-top:15px; letter-spacing:1px;">${pendingPrize.name}</h2>
+            document.getElementById('win-modal').style.display = 'flex';
+            document.getElementById('win-content').innerHTML = `
+                ${winItem.img === '⭐' ? '<div style="font-size:80px">⭐</div>' : `<img src="img/${winItem.img}" style="width:120px">`}
+                <h3>${winItem.name}</h3>
             `;
-            if(webApp.HapticFeedback) webApp.HapticFeedback.notificationOccurred('success');
+            if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         }, 6500);
     }
 
-    function collectReward() {
-        if(pendingPrize.id === 'stars') balance += 1000; else inventory.push(pendingPrize);
-        document.getElementById('win-overlay').style.display = 'none';
-        isBusy = false; pendingPrize = null; refreshUI();
+    function claimReward() {
+        if(winItem.id === 'stars') balance += 1000; else inventory.push(winItem);
+        document.getElementById('win-modal').style.display = 'none';
+        isRolling = false; winItem = null; sync();
     }
 
-    // --- CRASH LOGIC ---
-    let inCrash = false;
-    let mult = 1.0;
-    let crashTimer;
-
-    function handleCrash() {
-        const bet = parseInt(document.getElementById('bet-input').value);
-        if(!bet || bet > balance || bet <= 0 || (isBusy && !inCrash)) return;
-
-        const btn = document.getElementById('crash-control');
-        if(inCrash) {
-            clearInterval(crashTimer);
-            const win = Math.floor(bet * mult);
-            balance += win; 
-            webApp.showPopup({message: `Поздравляем! Вы забрали ${win} ⭐`});
-            resetCrashUI();
-            return;
-        }
-
-        balance -= bet; isBusy = true; inCrash = true; mult = 1.0; refreshUI();
-        btn.innerText = "ЗАБРАТЬ"; btn.classList.add('btn-stop');
-
-        const boomPoint = (Math.random() * 4 + 1.1).toFixed(2);
-
-        crashTimer = setInterval(() => {
-            mult += 0.01;
-            document.getElementById('multiplier').innerText = mult.toFixed(2) + "x";
-            const rocket = document.getElementById('rocket-obj');
-            rocket.style.bottom = (20 + mult * 18) + "px";
-            rocket.style.left = (20 + mult * 22) + "px";
-
-            if(mult >= boomPoint) {
-                clearInterval(crashTimer);
-                document.getElementById('multiplier').style.color = "var(--red)";
-                document.getElementById('multiplier').innerText = "CRASH!";
-                if(webApp.HapticFeedback) webApp.HapticFeedback.notificationOccurred('error');
-                setTimeout(resetCrashUI, 2000);
-            }
-        }, 60);
-    }
-
-    function resetCrashUI() {
-        inCrash = false; isBusy = false;
-        clearInterval(crashTimer);
-        const btn = document.getElementById('crash-control');
-        btn.innerText = "ВЗЛЕТАЕМ"; btn.classList.remove('btn-stop');
-        document.getElementById('multiplier').style.color = "var(--gold)";
-        document.getElementById('multiplier').innerText = "1.00x";
-        document.getElementById('rocket-obj').style.bottom = "20px";
-        document.getElementById('rocket-obj').style.left = "20px";
-        refreshUI();
-    }
-
-    // --- INVENTORY & SELL ---
-    function updateInvDisplay() {
-        const list = document.getElementById('items-list');
-        list.innerHTML = inventory.length ? '' : '<p style="color:#444; grid-column:1/4; text-align:center;">У вас пока нет NFT подарков</p>';
+    // --- ИНВЕНТАРЬ И ПРОДАЖА ---
+    function renderInv() {
+        const list = document.getElementById('inv-list');
+        list.innerHTML = inventory.length ? '' : '<p style="grid-column:1/4; color:#555;">Пусто</p>';
         inventory.forEach((it, i) => {
             list.innerHTML += `
-                <div class="slot" style="min-width:unset; height:120px;" onclick="openSellMenu(${i})">
-                    ${it.img === '⭐' ? '<div style="font-size:30px">⭐</div>' : `<img src="img/${it.img}" style="width:50px; height:50px;">`}
+                <div class="slot" style="min-width:unset; height:110px;" onclick="openSell(${i})">
+                    ${it.img === '⭐' ? '<div style="font-size:30px">⭐</div>' : `<img src="img/${it.img}" style="width:50px;">`}
                     <span style="font-size:9px;">${it.name}</span>
                 </div>`;
         });
     }
 
-    function openSellMenu(index) {
-        const item = inventory[index];
-        const sellVal = Math.floor(item.price * 1.5);
-        const overlay = document.getElementById('action-overlay');
-        overlay.style.display = 'flex';
-        document.getElementById('action-box').innerHTML = `
-            <h2 style="color:var(--gold); margin:0;">${item.name}</h2>
-            <div style="padding:20px 0;">
-                ${item.img === '⭐' ? '<div style="font-size:60px">⭐</div>' : `<img src="img/${item.img}" style="width:100px">`}
-            </div>
-            <p style="color:#888;">Цена продажи: <b style="color:#fff;">${sellVal} ⭐</b></p>
-            <button class="btn-main" style="background:var(--green); color:#000;" onclick="sellNFT(${index}, ${sellVal})">ПРОДАТЬ</button>
-            <button class="btn-main" style="background:#333; margin-top:10px; color:#fff;" onclick="closeSell()">ОТМЕНА</button>
+    function openSell(idx) {
+        const it = inventory[idx];
+        const price = Math.floor(it.price * 1.5);
+        const modal = document.getElementById('action-modal');
+        modal.style.display = 'flex';
+        document.getElementById('action-content').innerHTML = `
+            <h3>${it.name}</h3>
+            <p>Цена продажи: ${price} ⭐</p>
+            <button class="btn-main" style="background:var(--green);" onclick="confirmSell(${idx}, ${price})">ПРОДАТЬ</button>
+            <button class="btn-main" style="background:#333; margin-top:10px; color:#fff;" onclick="closeAction()">ОТМЕНА</button>
         `;
     }
 
-    function sellNFT(idx, amt) {
+    function confirmSell(idx, pr) {
         inventory.splice(idx, 1);
-        balance += amt;
-        closeSell(); refreshUI(); updateInvDisplay();
+        balance += pr;
+        closeAction(); sync(); renderInv();
     }
 
-    function closeSell() { document.getElementById('action-overlay').style.display = 'none'; }
+    function closeAction() { document.getElementById('action-modal').style.display = 'none'; }
 
-    refreshUI();
+    // --- КРАШ ---
+    let crashOn = false; let cMult = 1.0; let cTimer;
+    function startCrash() {
+        const bet = parseInt(document.getElementById('bet-amount').value);
+        if(!bet || bet > balance || bet <= 0 || (isRolling && !crashOn)) return;
+        const btn = document.getElementById('crash-btn');
+        if(crashOn) {
+            clearInterval(cTimer);
+            balance += Math.floor(bet * cMult);
+            btn.innerText = "ВЗЛЕТАЕМ"; btn.style.background = "";
+            crashOn = false; sync(); return;
+        }
+        balance -= bet; crashOn = true; cMult = 1.0; sync();
+        btn.innerText = "ЗАБРАТЬ"; btn.style.background = "var(--red)";
+        const boom = (Math.random() * 3 + 1.1).toFixed(2);
+        cTimer = setInterval(() => {
+            cMult += 0.01;
+            document.getElementById('multiplier').innerText = cMult.toFixed(2) + "x";
+            if(cMult >= boom) {
+                clearInterval(cTimer);
+                document.getElementById('multiplier').innerText = "CRASH!";
+                btn.innerText = "ВЗЛЕТАЕМ"; btn.style.background = "";
+                crashOn = false; sync();
+            }
+        }, 70);
+    }
+
+    sync();
 </script>
 </body>
 </html>
