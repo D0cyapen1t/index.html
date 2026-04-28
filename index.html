@@ -102,10 +102,11 @@
         document.getElementById('balance-val').innerText = balance;
         document.getElementById('spin-btn').disabled = (balance < 500 || isBusy);
         
-        // КРИТИЧЕСКОЕ ОБНОВЛЕНИЕ: Шлем данные боту для SQLite
-        try {
-            tg.sendData(JSON.stringify({new_balance: balance}));
-        } catch(e) { console.error("Sync error"); }
+        // СОХРАНЕНИЕ БЕЗ ВЫЛЕТА: Используем CloudStorage
+        // Это сохраняет данные внутри Telegram для этого юзера
+        if (tg.CloudStorage) {
+            tg.CloudStorage.setItem('bal', balance.toString());
+        }
     }
 
     function nav(id) {
