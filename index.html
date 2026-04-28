@@ -15,7 +15,7 @@
         }
         body { background: var(--bg); color: var(--text-main); font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; overflow: hidden; user-select: none; }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #000; position: sticky; top: 0; z-index: 100; }
-        .balance-box { background: var(--card-bg); padding: 8px 16px; border-radius: 12px; display: flex; align-items: center; gap: 8px; font-weight: 800; border: 1px solid #2c2c2e; }
+        .balance-box { background: var(--card-bg); padding: 8px 16px; border-radius: 12px; display: flex; align-items: center; gap: 8px; font-weight: 800; border: 1px solid #2c2c2e; min-width: 80px; }
         .balance-box span { color: var(--accent); }
         .section { display: none; height: calc(100vh - 150px); padding: 15px; overflow-y: auto; box-sizing: border-box; }
         .active { display: block; }
@@ -32,8 +32,8 @@
         .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-sub); gap: 4px; font-size: 11px; font-weight: 600; cursor: pointer; }
         .nav-item.active { color: #fff; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; align-items: center; justify-content: center; }
-        .modal-content { background: var(--card-bg); width: 80%; padding: 30px; border-radius: 24px; text-align: center; border: 1px solid #333; }
-        .crash-area { background: #0a0a0a; border-radius: 24px; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 1px solid #1c1c1e; margin-bottom: 15px; }
+        .modal-content { background: var(--card-bg); width: 80%; padding: 30px; border-radius: 24px; text-align: center; }
+        .crash-area { background: #0a0a0a; border-radius: 24px; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #1c1c1e; margin-bottom: 15px; }
         #crash-mult { font-size: 54px; font-weight: 900; color: var(--accent); }
     </style>
 </head>
@@ -41,7 +41,7 @@
 
 <div class="header">
     <div style="font-weight: 800; font-size: 20px;">LIVE</div>
-    <div class="balance-box">⭐ <span id="bal-display">ЗАГРУЗКА...</span></div>
+    <div class="balance-box">⭐ <span id="bal-display">...</span></div>
 </div>
 
 <div id="tab-home" class="section active">
@@ -110,52 +110,53 @@
     let inv = [];
     let isBusy = false;
 
-    // ГЛОБАЛЬНЫЙ ФИКС СИНХРОНИЗАЦИИ
-    async function sync() {
-        const data = JSON.stringify({ bal, inv });
-        localStorage.setItem('game_data', data);
+    // ПРИНУДИТЕЛЬНОЕ ОБНОВЛЕНИЕ ЭКРАНА
+    function updateUI() {
         document.getElementById('bal-display').innerText = bal.toLocaleString();
-        
-        // Пытаемся сохранить в облако TG
+    }
+
+    // УМНОЕ СОХРАНЕНИЕ
+    async function sync() {
+        updateUI();
+        const data = JSON.stringify({ bal, inv });
+        localStorage.setItem('game_storage', data);
         if (tg.CloudStorage) {
-            tg.CloudStorage.setItem('game_data', data, (err) => {
-                if(err) console.error("Cloud save error");
+            tg.CloudStorage.setItem('game_storage', data, (err) => {
+                if(err) console.log("Cloud Save Failed");
             });
         }
     }
 
-    // УЛУЧШЕННАЯ ЗАГРУЗКА
-    function init() {
-        const keys = ['game_data', 'user_data']; // Проверяем оба возможных ключа
-        let loaded = false;
-
-        const processData = (val) => {
-            if(!val || loaded) return;
-            try {
-                const d = JSON.parse(val);
-                bal = d.bal || 0;
-                inv = d.inv || [];
-                loaded = true;
-                sync();
-            } catch(e) {}
-        };
-
-        if (tg.CloudStorage) {
-            keys.forEach(key => {
-                tg.CloudStorage.getItem(key, (err, val) => {
-                    if (!err && val) processData(val);
-                });
+    // ЖЕСТКАЯ ЗАГРУЗКА ДАННЫХ (FIX)
+    async function initGame() {
+        document.getElementById('bal-display').innerText = "СИНХРО...";
+        
+        const loadFromCloud = () => new Promise((resolve) => {
+            if (!tg.CloudStorage) return resolve(null);
+            tg.CloudStorage.getItem('game_storage', (err, val) => {
+                if (!err && val) resolve(JSON.parse(val));
+                else resolve(null);
             });
+        });
+
+        // 1. Сначала берем из облака
+        let data = await loadFromCloud();
+        
+        // 2. Если в облаке пусто, берем из локала
+        if (!data) {
+            const local = localStorage.getItem('game_storage');
+            if (local) data = JSON.parse(local);
+        }
+
+        // 3. Применяем данные
+        if (data) {
+            bal = data.bal || 0;
+            inv = data.inv || [];
+        } else {
+            bal = 0; inv = [];
         }
         
-        // Запасной вариант из localStorage
-        setTimeout(() => {
-            if(!loaded) {
-                const local = localStorage.getItem('game_data') || localStorage.getItem('user_data');
-                processData(local);
-                if(!loaded) { bal = 0; inv = []; sync(); }
-            }
-        }, 500);
+        sync();
     }
 
     function nav(id) {
@@ -167,7 +168,7 @@
         if(id === 'profile') renderInv();
     }
 
-    // --- CRASH ---
+    // Логика Crash и Roulette остается прежней, но использует sync()
     let crashActive = false, crashMult = 1.0, crashTimer, currentBet = 0;
     function handleCrash() {
         const btn = document.getElementById('crash-btn');
@@ -183,10 +184,10 @@
         crashTimer = setInterval(() => {
             crashMult += 0.01;
             document.getElementById('crash-mult').innerText = crashMult.toFixed(2) + "x";
-            btn.innerText = `ЗАБРАТЬ (${Math.floor(currentBet * crashMult)})`;
             if(crashMult >= boom) finishGame(boom, false);
         }, 80);
     }
+
     function finishGame(v, win) {
         clearInterval(crashTimer); crashActive = false; isBusy = false;
         document.getElementById('crash-mult').innerText = win ? v.toFixed(2)+"x" : "BOOM!";
@@ -201,32 +202,26 @@
         }, 2000);
     }
 
-    // --- ROULETTE ---
     function startSpin() {
         const isDemo = document.getElementById('demo-mode').checked;
         if(!isDemo && (bal < 500 || isBusy)) return;
         if(!isDemo) bal -= 500;
         isBusy = true; sync();
-
         const tape = document.getElementById('tape'), slotWidth = 150, winIdx = 40;
         const prize = items[Math.floor(Math.random() * items.length)];
         tape.style.transition = 'none'; tape.style.transform = 'translateX(0)'; tape.innerHTML = '';
-
         for(let i = 0; i < 55; i++) {
             let it = (i === winIdx) ? prize : items[Math.floor(Math.random() * items.length)];
             const content = it.img === '⭐' ? `<div class="slot-emoji">⭐</div>` : `<img src="img/${it.img}">`;
             tape.innerHTML += `<div class="slot">${content}<span>${it.name}</span></div>`;
         }
-
         setTimeout(() => {
             tape.style.transition = 'transform 7s cubic-bezier(0.1, 0, 0.05, 1)';
             tape.style.transform = `translateX(-${(winIdx * slotWidth) + 75 - (window.innerWidth / 2)}px)`;
         }, 50);
-
         setTimeout(() => {
             if(!isDemo) { if(prize.val) bal += prize.val; else inv.push(prize); }
             document.getElementById('win-modal').style.display = 'flex';
-            document.getElementById('win-title').innerText = isDemo ? "ДЕМО-ВЫИГРЫШ" : "ВЫИГРЫШ!";
             const content = prize.img === '⭐' ? `<div class="slot-emoji">⭐</div>` : `<img src="img/${prize.img}">`;
             document.getElementById('win-box').innerHTML = `<div class="slot" style="margin:0;">${content}<span>${prize.name}</span></div>`;
             isBusy = false; sync();
@@ -253,7 +248,7 @@
         }
     }
 
-    init();
+    initGame();
 </script>
 </body>
 </html>
