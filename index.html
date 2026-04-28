@@ -79,7 +79,6 @@
 <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
-    tg.ready();
 
     const items = [
         {id: 'chill', name: 'Chill', img: 'Chill.png', price: 300},
@@ -91,6 +90,7 @@
         {id: 'stars', name: '1000 Stars', img: '⭐', price: 0}
     ];
 
+    // Загружаем баланс из URL (от бота) или из локальной памяти
     let balance = parseInt(new URLSearchParams(window.location.search).get('balance')) || parseInt(localStorage.getItem('user_bal')) || 0;
     let inventory = JSON.parse(localStorage.getItem('user_inv')) || [];
     let isBusy = false;
@@ -102,10 +102,10 @@
         document.getElementById('balance-val').innerText = balance;
         document.getElementById('spin-btn').disabled = (balance < 500 || isBusy);
         
-        // СОХРАНЕНИЕ БЕЗ ВЫЛЕТА: Используем CloudStorage
-        // Это сохраняет данные внутри Telegram для этого юзера
+        // ВАЖНО: Мы НЕ используем tg.sendData, чтобы не закрывать приложение!
+        // Сохраняем в облако Telegram (будет доступно при следующем входе)
         if (tg.CloudStorage) {
-            tg.CloudStorage.setItem('bal', balance.toString());
+            tg.CloudStorage.setItem('cached_bal', balance.toString());
         }
     }
 
