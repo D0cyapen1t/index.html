@@ -6,183 +6,326 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { 
-            --gold: #ffca28; --bg: #0f1116; --card: #1c1f26; 
-            --accent: #2c303a; --red: #ff4d4d; --green: #00e676;
+            --gold: #ffca28; --gold-glow: rgba(255, 202, 40, 0.4);
+            --bg: #0b0d10; --card: #161920; 
+            --accent: #232731; --red: #ff4757; --green: #2ed573;
         }
-        body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; margin: 0; padding: 0; overflow: hidden; }
         
-        .header { padding: 15px; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); border-bottom: 1px solid var(--accent); display: flex; justify-content: center; }
-        .balance-pill { background: var(--card); border: 1px solid var(--gold); padding: 6px 18px; border-radius: 50px; font-size: 18px; font-weight: 800; color: var(--gold); }
+        body { 
+            background: var(--bg); color: #fff; font-family: 'Inter', -apple-system, sans-serif; 
+            margin: 0; padding: 0; overflow: hidden; user-select: none;
+        }
+
+        /* --- UI ELEMENTS --- */
+        .header { 
+            padding: 15px; background: rgba(0,0,0,0.6); backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--accent); display: flex; justify-content: center;
+        }
+        .balance-pill {
+            background: linear-gradient(145deg, #1e222a, #161920); border: 1px solid var(--gold);
+            padding: 8px 24px; border-radius: 50px; font-size: 20px; font-weight: 900; color: var(--gold);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5), inset 0 0 10px var(--gold-glow);
+        }
 
         .section { display: none; height: 82vh; padding: 15px; box-sizing: border-box; overflow-y: auto; }
-        .active { display: block; }
+        .active { display: block; animation: sectionFade 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes sectionFade { from {opacity: 0; transform: scale(0.98);} to {opacity: 1; transform: scale(1);} }
 
-        /* Roulette */
-        .case-container { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--accent); }
-        .roulette-viewport { position: relative; width: 100%; height: 160px; background: #090a0d; border-radius: 15px; overflow: hidden; margin-bottom: 15px; }
-        .pointer { position: absolute; left: 50%; top: 0; width: 4px; height: 100%; background: var(--gold); z-index: 10; transform: translateX(-50%); box-shadow: 0 0 15px var(--gold); }
-        .tape { display: flex; transition: transform 5s cubic-bezier(0.1, 0, 0, 1); align-items: center; height: 100%; }
-        .slot { min-width: 120px; height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--accent); margin: 0 5px; border-radius: 12px; }
-        .slot img, .slot-emoji { width: 60px; height: 60px; object-fit: contain; }
-        .slot-emoji { font-size: 45px; display: flex; align-items: center; justify-content: center; }
+        /* --- MODERN ROULETTE --- */
+        .roulette-container {
+            position: relative; width: 100%; height: 180px; background: #050608; 
+            border-radius: 24px; overflow: hidden; border: 2px solid var(--accent);
+            box-shadow: inset 0 0 40px #000; margin-top: 10px;
+        }
+        .pointer {
+            position: absolute; left: 50%; top: 0; width: 3px; height: 100%; 
+            background: var(--gold); z-index: 20; transform: translateX(-50%);
+            box-shadow: 0 0 25px var(--gold);
+        }
+        .pointer::after {
+            content: ''; position: absolute; top: -5px; left: -6px; 
+            border-left: 8px solid transparent; border-right: 8px solid transparent;
+            border-top: 10px solid var(--gold);
+        }
+        .tape { display: flex; align-items: center; height: 100%; will-change: transform; }
+        .slot {
+            min-width: 125px; height: 140px; display: flex; flex-direction: column; align-items: center; 
+            justify-content: center; background: linear-gradient(180deg, #1c212a 0%, #13171e 100%);
+            margin: 0 6px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.3s;
+        }
+        .slot img, .slot-emoji { width: 70px; height: 70px; object-fit: contain; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); }
+        .slot-emoji { font-size: 50px; display: flex; align-items: center; justify-content: center; }
+        .slot span { font-size: 11px; font-weight: 700; margin-top: 10px; color: #a0a8b3; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* Modal & Buttons */
-        #modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
-        .modal-content { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid var(--gold); text-align: center; width: 80%; }
-        .btn { background: var(--gold); color: #000; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; margin-top: 10px; }
-        .btn-sell { background: var(--red); color: #fff; }
+        /* --- MODERN CRASH --- */
+        .crash-viewport {
+            background: radial-gradient(circle at center, #1a1e26 0%, #090a0d 100%);
+            border-radius: 24px; height: 240px; position: relative; border: 2px solid var(--accent);
+            display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 20px;
+        }
+        .grid-bg {
+            position: absolute; width: 100%; height: 100%; 
+            background-image: linear-gradient(var(--accent) 1px, transparent 1px), linear-gradient(90deg, var(--accent) 1px, transparent 1px);
+            background-size: 40px 40px; opacity: 0.2;
+        }
+        #multiplier { font-size: 64px; font-weight: 900; color: var(--gold); z-index: 10; font-variant-numeric: tabular-nums; }
+        .rocket-ship { position: absolute; bottom: 20px; left: 20px; font-size: 45px; transition: 0.1s linear; filter: drop-shadow(0 0 15px var(--gold)); }
 
-        /* Inventory */
-        .inv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .inv-item { background: var(--card); border: 1px solid var(--accent); border-radius: 12px; padding: 10px; text-align: center; position: relative; }
-        .inv-item img, .inv-item .emoji { width: 50px; height: 50px; margin-bottom: 5px; }
+        /* --- BUTTONS & INPUTS --- */
+        .input-box {
+            background: var(--card); border: 1px solid var(--accent); border-radius: 16px;
+            padding: 14px; color: #fff; width: 100%; box-sizing: border-box; 
+            font-size: 16px; margin-bottom: 12px; outline: none; text-align: center;
+        }
+        .btn-main {
+            background: linear-gradient(135deg, #ffca28 0%, #ff8f00 100%);
+            color: #000; border: none; width: 100%; padding: 18px; border-radius: 16px;
+            font-weight: 800; font-size: 17px; text-transform: uppercase; cursor: pointer;
+            box-shadow: 0 6px 20px rgba(255, 143, 0, 0.3); transition: 0.2s;
+        }
+        .btn-main:active { transform: translateY(2px); box-shadow: none; }
+        .btn-main:disabled { background: #2c303a; color: #555; box-shadow: none; }
+        .btn-stop { background: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%); color: #fff; box-shadow: 0 6px 20px rgba(255, 71, 87, 0.3); }
 
-        .nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #1c1f26; display: flex; border-top: 1px solid var(--accent); }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #555; font-size: 10px; }
-        .nav-item.active { color: var(--gold); }
+        /* --- MODAL --- */
+        .modal-overlay {
+            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        .modal-win {
+            background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid var(--gold);
+            text-align: center; width: 85%; animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes modalPop { from {transform: scale(0.5); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+
+        /* --- NAV --- */
+        .navbar {
+            position: fixed; bottom: 0; width: 100%; height: 75px; 
+            background: rgba(22, 25, 32, 0.9); backdrop-filter: blur(20px);
+            display: flex; border-top: 1px solid var(--accent);
+        }
+        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #5b626e; font-size: 11px; font-weight: 700; }
+        .nav-btn.active { color: var(--gold); }
     </style>
 </head>
 <body>
 
-<div class="header"><div class="balance-pill">⭐ <span id="balance">0</span></div></div>
-
-<div id="modal">
-    <div class="modal-content" id="modal-body"></div>
+<div class="header">
+    <div class="balance-pill">⭐ <span id="user-bal">0</span></div>
 </div>
 
-<div id="tab-roulette" class="section active">
-    <div class="case-container">
-        <div class="roulette-viewport"><div class="pointer"></div><div id="tape" class="tape"></div></div>
-        <button class="btn" id="spin-btn" onclick="startSpin()">ОТКРЫТЬ КЕЙС (500 ⭐)</button>
+<div id="win-overlay" class="modal-overlay">
+    <div class="modal-win">
+        <h1 style="margin:0; color:var(--gold); font-size:28px;">ВЫИГРЫШ</h1>
+        <div id="win-res" style="padding: 25px 0;"></div>
+        <button class="btn-main" onclick="collectReward()">ЗАБРАТЬ ПРИЗ</button>
     </div>
 </div>
 
-<div id="tab-profile" class="section">
-    <h3 style="margin-bottom: 15px;">ИНВЕНТАРЬ</h3>
-    <div id="inv-grid" class="inv-grid"></div>
+<div id="action-overlay" class="modal-overlay">
+    <div class="modal-win" id="action-box"></div>
 </div>
 
-<nav class="nav">
-    <div class="nav-item active" onclick="tab('roulette')">📦 КЕЙСЫ</div>
-    <div class="nav-item" onclick="tab('profile')">👤 ПРОФИЛЬ</div>
+<div id="tab-roulette" class="section active">
+    <div class="roulette-container">
+        <div class="pointer"></div>
+        <div id="tape-anim" class="tape"></div>
+    </div>
+    <div style="margin-top:25px;">
+        <button class="btn-main" id="spin-control" onclick="launchRoulette()">ОТКРЫТЬ КЕЙС (500 ⭐)</button>
+    </div>
+</div>
+
+<div id="tab-crash" class="section">
+    <div class="crash-viewport">
+        <div class="grid-bg"></div>
+        <div id="multiplier">1.00x</div>
+        <div id="rocket-obj" class="rocket-ship">🚀</div>
+    </div>
+    <input type="number" id="bet-input" class="input-box" placeholder="Сумма ставки...">
+    <button class="btn-main" id="crash-control" onclick="handleCrash()">ВЗЛЕТАЕМ</button>
+</div>
+
+<div id="tab-inv" class="section">
+    <h2 style="margin-bottom:20px; font-size:20px; color:var(--gold);">ВАШИ NFT ПОДАРКИ</h2>
+    <div id="items-list" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;"></div>
+</div>
+
+<nav class="navbar">
+    <div class="nav-btn active" onclick="navigate('roulette')">📦 КЕЙСЫ</div>
+    <div class="nav-btn" onclick="navigate('crash')">🚀 КРАШ</div>
+    <div class="nav-btn" onclick="navigate('inv')">👤 ПРОФИЛЬ</div>
 </nav>
 
 <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
+    const webApp = window.Telegram.WebApp;
+    webApp.expand();
 
-    // Цены (базовые в звездах)
-    const prices = { chill: 300, mood: 450, snoop: 600, ufc: 800, low: 1000, voodoo: 1500, stars: 0 };
-    const items = [
-        {id: 'chill', name: 'Chill', img: 'Chill.png'},
-        {id: 'mood', name: 'Mood', img: 'Mood.png'},
-        {id: 'snoop', name: 'Snoop', img: 'Snoop.png'},
-        {id: 'ufc', name: 'UFC', img: 'UFC.png'},
-        {id: 'low', name: 'Low', img: 'Low.png'},
-        {id: 'voodoo', name: 'Voodoo', img: 'Voodoo.png'},
-        {id: 'stars', name: '1000 Stars', img: '⭐'}
+    // Константы
+    const NFT_DATA = [
+        {id: 'chill', name: 'Chill', img: 'Chill.png', price: 300},
+        {id: 'mood', name: 'Mood', img: 'Mood.png', price: 450},
+        {id: 'snoop', name: 'Snoop', img: 'Snoop.png', price: 600},
+        {id: 'ufc', name: 'UFC', img: 'UFC.png', price: 850},
+        {id: 'low', name: 'Low', img: 'Low.png', price: 1100},
+        {id: 'voodoo', name: 'Voodoo', img: 'Voodoo.png', price: 1600},
+        {id: 'stars', name: '1000 Stars', img: '⭐', price: 0}
     ];
 
-    // Фикс баланса: берем из URL или 0, игнорируем старые 2000
-    const params = new URLSearchParams(window.location.search);
-    let bal = parseInt(params.get('balance'));
-    if (isNaN(bal)) bal = parseInt(localStorage.getItem('bal')) || 0;
-    
-    let inv = JSON.parse(localStorage.getItem('inv')) || [];
-    let isSpinning = false;
+    // Состояние
+    let balance = parseInt(new URLSearchParams(window.location.search).get('balance')) || parseInt(localStorage.getItem('saved_bal')) || 0;
+    let inventory = JSON.parse(localStorage.getItem('saved_inv')) || [];
+    let isBusy = false;
+    let pendingPrize = null;
 
-    function sync() {
-        localStorage.setItem('bal', bal);
-        localStorage.setItem('inv', JSON.stringify(inv));
-        document.getElementById('balance').innerText = bal;
-        document.getElementById('spin-btn').disabled = (bal < 500);
+    function refreshUI() {
+        localStorage.setItem('saved_bal', balance);
+        localStorage.setItem('saved_inv', JSON.stringify(inventory));
+        document.getElementById('user-bal').innerText = balance;
+        document.getElementById('spin-control').disabled = (balance < 500 || isBusy);
     }
 
-    function tab(name) {
+    function navigate(name) {
+        if(isBusy && name !== 'roulette' && name !== 'crash') return;
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById('tab-' + name).classList.add('active');
-        if(name === 'profile') renderInv();
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        if(name === 'inv') updateInvDisplay();
     }
 
-    function startSpin() {
-        if(bal < 500 || isSpinning) return;
-        bal -= 500; isSpinning = true; sync();
+    // --- ROULETTE LOGIC ---
+    function launchRoulette() {
+        if(balance < 500 || isBusy) return;
+        balance -= 500; isBusy = true; refreshUI();
 
-        const tape = document.getElementById('tape');
+        const tape = document.getElementById('tape-anim');
         tape.style.transition = 'none'; tape.style.transform = 'translateX(0)'; tape.innerHTML = '';
 
-        for(let i=0; i<65; i++) {
-            const it = items[Math.floor(Math.random()*items.length)];
+        for(let i=0; i<70; i++) {
+            const it = NFT_DATA[Math.floor(Math.random()*NFT_DATA.length)];
             tape.innerHTML += `<div class="slot">${it.img === '⭐' ? '<div class="slot-emoji">⭐</div>' : `<img src="img/${it.img}">`}<span>${it.name}</span></div>`;
         }
 
-        const winIdx = 60;
-        const winner = items[Math.floor(Math.random()*items.length)];
-        tape.querySelectorAll('.slot')[winIdx].innerHTML = `${winner.img === '⭐' ? '<div class="slot-emoji">⭐</div>' : `<img src="img/${winner.img}">`}<span>${winner.name}</span>`;
+        const winnerIdx = 62;
+        pendingPrize = NFT_DATA[Math.floor(Math.random()*NFT_DATA.length)];
+        tape.querySelectorAll('.slot')[winnerIdx].innerHTML = `${pendingPrize.img === '⭐' ? '<div class="slot-emoji">⭐</div>' : `<img src="img/${pendingPrize.img}">`}<span>${pendingPrize.name}</span>`;
 
         setTimeout(() => {
-            tape.style.transition = 'transform 5s cubic-bezier(0.1, 0, 0, 1)';
-            tape.style.transform = `translateX(-${(winIdx * 130) - (window.innerWidth / 2) + 65}px)`;
+            tape.style.transition = 'transform 6s cubic-bezier(0.1, 0, 0.05, 1)';
+            const finalShift = (winnerIdx * 137) - (window.innerWidth / 2) + 68;
+            tape.style.transform = `translateX(-${finalShift}px)`;
         }, 50);
 
         setTimeout(() => {
-            showModal('WIN', winner);
-            if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-        }, 5500);
+            document.getElementById('win-overlay').style.display = 'flex';
+            document.getElementById('win-res').innerHTML = `
+                ${pendingPrize.img === '⭐' ? '<div style="font-size:90px">⭐</div>' : `<img src="img/${pendingPrize.img}" style="width:130px">`}
+                <h2 style="margin-top:15px; letter-spacing:1px;">${pendingPrize.name}</h2>
+            `;
+            if(webApp.HapticFeedback) webApp.HapticFeedback.notificationOccurred('success');
+        }, 6500);
     }
 
-    function showModal(type, item, index = null) {
-        const m = document.getElementById('modal');
-        const b = document.getElementById('modal-body');
-        m.style.display = 'flex';
+    function collectReward() {
+        if(pendingPrize.id === 'stars') balance += 1000; else inventory.push(pendingPrize);
+        document.getElementById('win-overlay').style.display = 'none';
+        isBusy = false; pendingPrize = null; refreshUI();
+    }
 
-        if(type === 'WIN') {
-            b.innerHTML = `
-                <h2 style="color:var(--gold)">ВЫИГРЫШ!</h2>
-                ${item.img === '⭐' ? '<div style="font-size:80px">⭐</div>' : `<img src="img/${item.img}" style="width:100px">`}
-                <p>${item.name}</p>
-                <button class="btn" onclick="claim('${item.id}')">ЗАБРАТЬ</button>
-            `;
-        } else {
-            const sellPrice = Math.floor((prices[item.id] || 0) * 1.5);
-            b.innerHTML = `
-                <h2 style="color:var(--gold)">${item.name}</h2>
-                ${item.img === '⭐' ? '<div style="font-size:80px">⭐</div>' : `<img src="img/${item.img}" style="width:100px">`}
-                <p>Цена продажи: ${sellPrice} ⭐</p>
-                <button class="btn btn-sell" onclick="sell(${index}, ${sellPrice})">ПРОДАТЬ ЗА ${sellPrice}</button>
-                <button class="btn" style="background:#444; color:#fff" onclick="closeModal()">ЗАКРЫТЬ</button>
-            `;
+    // --- CRASH LOGIC ---
+    let inCrash = false;
+    let mult = 1.0;
+    let crashTimer;
+
+    function handleCrash() {
+        const bet = parseInt(document.getElementById('bet-input').value);
+        if(!bet || bet > balance || bet <= 0 || (isBusy && !inCrash)) return;
+
+        const btn = document.getElementById('crash-control');
+        if(inCrash) {
+            clearInterval(crashTimer);
+            const win = Math.floor(bet * mult);
+            balance += win; 
+            webApp.showPopup({message: `Поздравляем! Вы забрали ${win} ⭐`});
+            resetCrashUI();
+            return;
         }
+
+        balance -= bet; isBusy = true; inCrash = true; mult = 1.0; refreshUI();
+        btn.innerText = "ЗАБРАТЬ"; btn.classList.add('btn-stop');
+
+        const boomPoint = (Math.random() * 4 + 1.1).toFixed(2);
+
+        crashTimer = setInterval(() => {
+            mult += 0.01;
+            document.getElementById('multiplier').innerText = mult.toFixed(2) + "x";
+            const rocket = document.getElementById('rocket-obj');
+            rocket.style.bottom = (20 + mult * 18) + "px";
+            rocket.style.left = (20 + mult * 22) + "px";
+
+            if(mult >= boomPoint) {
+                clearInterval(crashTimer);
+                document.getElementById('multiplier').style.color = "var(--red)";
+                document.getElementById('multiplier').innerText = "CRASH!";
+                if(webApp.HapticFeedback) webApp.HapticFeedback.notificationOccurred('error');
+                setTimeout(resetCrashUI, 2000);
+            }
+        }, 60);
     }
 
-    function claim(id) {
-        const winner = items.find(i => i.id === id);
-        if(id === 'stars') bal += 1000; else inv.push(winner);
-        closeModal(); isSpinning = false; sync();
+    function resetCrashUI() {
+        inCrash = false; isBusy = false;
+        clearInterval(crashTimer);
+        const btn = document.getElementById('crash-control');
+        btn.innerText = "ВЗЛЕТАЕМ"; btn.classList.remove('btn-stop');
+        document.getElementById('multiplier').style.color = "var(--gold)";
+        document.getElementById('multiplier').innerText = "1.00x";
+        document.getElementById('rocket-obj').style.bottom = "20px";
+        document.getElementById('rocket-obj').style.left = "20px";
+        refreshUI();
     }
 
-    function sell(index, price) {
-        inv.splice(index, 1);
-        bal += price;
-        closeModal(); sync(); renderInv();
-        tg.HapticFeedback.impactOccurred('medium');
-    }
-
-    function closeModal() { document.getElementById('modal').style.display = 'none'; }
-
-    function renderInv() {
-        const g = document.getElementById('inv-grid');
-        g.innerHTML = inv.length ? '' : '<p style="color:#555; grid-column:1/4">Пусто</p>';
-        inv.forEach((item, i) => {
-            g.innerHTML += `
-                <div class="inv-item" onclick='showModal("INV", ${JSON.stringify(item)}, ${i})'>
-                    ${item.img === '⭐' ? '<div style="font-size:30px">⭐</div>' : `<img src="img/${item.img}">`}
-                    <p style="font-size:9px; margin:0;">${item.name}</p>
+    // --- INVENTORY & SELL ---
+    function updateInvDisplay() {
+        const list = document.getElementById('items-list');
+        list.innerHTML = inventory.length ? '' : '<p style="color:#444; grid-column:1/4; text-align:center;">У вас пока нет NFT подарков</p>';
+        inventory.forEach((it, i) => {
+            list.innerHTML += `
+                <div class="slot" style="min-width:unset; height:120px;" onclick="openSellMenu(${i})">
+                    ${it.img === '⭐' ? '<div style="font-size:30px">⭐</div>' : `<img src="img/${it.img}" style="width:50px; height:50px;">`}
+                    <span style="font-size:9px;">${it.name}</span>
                 </div>`;
         });
     }
 
-    sync();
+    function openSellMenu(index) {
+        const item = inventory[index];
+        const sellVal = Math.floor(item.price * 1.5);
+        const overlay = document.getElementById('action-overlay');
+        overlay.style.display = 'flex';
+        document.getElementById('action-box').innerHTML = `
+            <h2 style="color:var(--gold); margin:0;">${item.name}</h2>
+            <div style="padding:20px 0;">
+                ${item.img === '⭐' ? '<div style="font-size:60px">⭐</div>' : `<img src="img/${item.img}" style="width:100px">`}
+            </div>
+            <p style="color:#888;">Цена продажи: <b style="color:#fff;">${sellVal} ⭐</b></p>
+            <button class="btn-main" style="background:var(--green); color:#000;" onclick="sellNFT(${index}, ${sellVal})">ПРОДАТЬ</button>
+            <button class="btn-main" style="background:#333; margin-top:10px; color:#fff;" onclick="closeSell()">ОТМЕНА</button>
+        `;
+    }
+
+    function sellNFT(idx, amt) {
+        inventory.splice(idx, 1);
+        balance += amt;
+        closeSell(); refreshUI(); updateInvDisplay();
+    }
+
+    function closeSell() { document.getElementById('action-overlay').style.display = 'none'; }
+
+    refreshUI();
 </script>
 </body>
 </html>
