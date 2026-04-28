@@ -39,11 +39,11 @@
             background: var(--gold); z-index: 20; transform: translateX(-50%);
             box-shadow: 0 0 25px var(--gold);
         }
-        .tape { display: flex; align-items: center; height: 100%; }
+        .tape { display: flex; align-items: center; height: 100%; will-change: transform; }
         .slot { 
             min-width: 130px; width: 130px; height: 150px; display: flex; flex-direction: column; 
             align-items: center; justify-content: center; background: linear-gradient(145deg, #1c212a, #161920); 
-            margin: 0 6px; border-radius: 22px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.05);
+            margin: 0 5px; border-radius: 22px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.05);
         }
         .slot img { width: 75px; height: 75px; object-fit: contain; }
         .slot-emoji { font-size: 50px; }
@@ -70,8 +70,9 @@
             position: fixed; bottom: 0; width: 100%; height: 80px; background: #161920; 
             display: flex; border-top: 1px solid var(--accent); padding-bottom: 15px;
         }
-        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #5b626e; }
+        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #5b626e; text-decoration: none;}
         .nav-btn.active { color: var(--gold); }
+        .nav-btn b { font-size: 10px; margin-top: 4px; }
 
         .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal-win { background: var(--card); padding: 40px 20px; border-radius: 35px; border: 2px solid var(--gold); text-align: center; width: 85%; }
@@ -126,13 +127,14 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
+    // Твои новые цены и веса
     const items = [
-        {id: 'chill', name: 'Chill Flame', img: 'Chill.png', price: 1200, rarity: 25},
-        {id: 'mood', name: 'Mood Pack', img: 'Mood.png', price: 1500, rarity: 20},
-        {id: 'snoop', name: 'Snoop Dogg', img: 'Snoop.png', price: 2500, rarity: 15},
-        {id: 'ufc', name: 'UFC STRICE', img: 'UFC.png', price: 5000, rarity: 12},
-        {id: 'low', name: 'Low Rider', img: 'Low.png', price: 8000, rarity: 10},
-        {id: 'voodoo', name: 'Voodoo Doll', img: 'Voodoo.png', price: 15000, rarity: 8},
+        {id: 'chill', name: 'Chill Flame', img: 'Chill.png', price: 450, rarity: 25},
+        {id: 'mood', name: 'Mood Pack', img: 'Mood.png', price: 650, rarity: 20},
+        {id: 'snoop', name: 'Snoop Dogg', img: 'Snoop.png', price: 750, rarity: 15},
+        {id: 'ufc', name: 'UFC STRICE', img: 'UFC.png', price: 1450, rarity: 12},
+        {id: 'low', name: 'Low Rider', img: 'Low.png', price: 4000, rarity: 8},
+        {id: 'voodoo', name: 'Voodoo Doll', img: 'Voodoo.png', price: 3100, rarity: 10},
         {id: 's50', name: '50 Stars', img: '⭐', val: 50, rarity: 15},
         {id: 's150', name: '150 Stars', img: '⭐', val: 150, rarity: 10},
         {id: 's400', name: '400 Stars', img: '⭐', val: 400, rarity: 5}
@@ -172,23 +174,37 @@
     function startRoulette() {
         if(balance < 500 || isBusy) return;
         balance -= 500; isBusy = true; sync();
+        
         const tape = document.getElementById('tape');
-        tape.style.transition = 'none'; tape.style.transform = 'translateX(0)'; tape.innerHTML = '';
-        const slotWidth = 142; const winIdx = 40;
-        for(let i=0; i<50; i++) {
+        tape.style.transition = 'none'; 
+        tape.style.transform = 'translateX(0)'; 
+        tape.innerHTML = '';
+        
+        const slotWidth = 140; // 130px + 10px total margin
+        const winIdx = 45; 
+        
+        for(let i=0; i<60; i++) {
             let it = getRandomItem();
-            if(i === winIdx) { currentPrize = getRandomItem(); it = currentPrize; }
+            if(i === winIdx) { 
+                currentPrize = getRandomItem(); 
+                it = currentPrize; 
+            }
             const content = it.img === '⭐' ? `<div class="slot-emoji">⭐</div>` : `<img src="img/${it.img}">`;
             tape.innerHTML += `<div class="slot">${content}<span>${it.name}</span></div>`;
         }
+        
         setTimeout(() => {
-            tape.style.transition = 'transform 7s cubic-bezier(0.15, 0, 0.05, 1)';
-            tape.style.transform = `translateX(-${(winIdx * slotWidth) - (window.innerWidth / 2) + (slotWidth / 2)}px)`;
+            tape.style.transition = 'transform 8s cubic-bezier(0.15, 0, 0.05, 1)';
+            const centerOffset = window.innerWidth / 2;
+            const stopPos = (winIdx * slotWidth) + (slotWidth / 2) - centerOffset;
+            tape.style.transform = `translateX(-${stopPos}px)`;
         }, 50);
+
         setTimeout(() => {
             document.getElementById('win-modal').style.display = 'flex';
-            document.getElementById('win-content').innerHTML = currentPrize.img === '⭐' ? '⭐' : `<img src="img/${currentPrize.img}" width="120">` + `<h3>${currentPrize.name}</h3>`;
-        }, 7500);
+            document.getElementById('win-content').innerHTML = currentPrize.img === '⭐' ? '<div style="font-size:60px">⭐</div>' : `<img src="img/${currentPrize.img}" width="140">` + `<h3>${currentPrize.name}</h3>`;
+            if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        }, 8200);
     }
 
     function claimReward() {
@@ -197,6 +213,7 @@
         isBusy = false; sync();
     }
 
+    // --- CRASH LOGIC ---
     let crashActive = false; let crashVal = 1.0; let crashTimer; let currentBet = 0;
     function handleCrash() {
         const btn = document.getElementById('crash-btn');
@@ -205,16 +222,16 @@
             clearInterval(crashTimer); resetCrash(); return;
         }
         const bet = parseInt(document.getElementById('bet-input').value);
-        if(!bet || bet < 100 || bet > balance) return alert("Мин. ставка 100 ⭐");
+        if(!bet || bet < 100 || bet > balance) return alert("Ошибка ставки!");
         currentBet = bet; balance -= bet; isBusy = true; crashActive = true; sync();
         btn.innerText = "ЗАБРАТЬ"; btn.classList.add('btn-stop');
         const isInstant = Math.random() < 0.10;
-        const boom = isInstant ? 1.00 : (Math.random() * 4 + 1.1).toFixed(2);
+        const boom = isInstant ? 1.00 : (Math.random() * 5 + 1.1).toFixed(2);
         if(isInstant) { finishCrash(); return; }
         crashTimer = setInterval(() => {
             crashVal += 0.01;
             document.getElementById('mult').innerText = crashVal.toFixed(2) + "x";
-            document.getElementById('rocket').style.transform = `translate(${crashVal*10}px, -${crashVal*10}px)`;
+            document.getElementById('rocket').style.transform = `translate(${crashVal*8}px, -${crashVal*8}px)`;
             if(crashVal >= boom) finishCrash();
         }, 50);
     }
@@ -223,6 +240,7 @@
         clearInterval(crashTimer);
         document.getElementById('mult').innerText = "BOOM!";
         document.getElementById('mult').style.color = "var(--red)";
+        if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
         setTimeout(resetCrash, 2000);
     }
 
@@ -238,16 +256,22 @@
 
     function renderInv() {
         const list = document.getElementById('inv-list');
-        list.innerHTML = inventory.length ? '' : 'Пусто';
+        list.innerHTML = inventory.length ? '' : '<p style="grid-column:1/4; text-align:center; opacity:0.5;">Пусто</p>';
         inventory.forEach((it, i) => {
-            list.innerHTML += `<div class="slot" style="height:120px;" onclick="openAction(${i})"><img src="img/${it.img}" width="50"><span>${it.name}</span></div>`;
+            list.innerHTML += `<div class="slot" style="height:130px;" onclick="openAction(${i})"><img src="img/${it.img}" width="60"><span>${it.name}</span></div>`;
         });
     }
 
     function openAction(idx) {
-        const it = inventory[idx]; const price = Math.floor(it.price * 0.8);
+        const it = inventory[idx]; 
+        const sellPrice = Math.floor(it.price * 0.5); // ТВОЕ ТРЕБОВАНИЕ: x0.5 цена продажи
         document.getElementById('action-modal').style.display = 'flex';
-        document.getElementById('action-content').innerHTML = `<h3>${it.name}</h3><button class="btn-main" onclick="sellItem(${idx}, ${price})">ПРОДАТЬ ЗА ${price}</button><br><button onclick="document.getElementById('action-modal').style.display='none'">ОТМЕНА</button>`;
+        document.getElementById('action-content').innerHTML = `
+            <h3>${it.name}</h3>
+            <p style="color:var(--gold); font-weight:700;">Цена покупки: ${it.price} ⭐</p>
+            <p style="color:var(--red); font-weight:700;">Цена продажи: ${sellPrice} ⭐</p>
+            <button class="btn-main" onclick="sellItem(${idx}, ${sellPrice})">ПРОДАТЬ</button>
+            <button class="btn-main" style="background:#333; color:#fff; margin-top:10px;" onclick="document.getElementById('action-modal').style.display='none'">ОТМЕНА</button>`;
     }
 
     function sellItem(idx, price) {
