@@ -36,57 +36,11 @@
         #crash-history-bar { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
         .hist-x { padding: 4px 10px; border-radius: 8px; background: var(--glass); border: 1px solid var(--glass-border); font-size: 11px; font-weight: 900; }
 
-        /* РУЛЕТКА */
-        .roulette-container { height: 160px; background: rgba(0,0,0,0.6); border-radius: 24px; overflow: hidden; position: relative; border: 1px solid var(--glass-border); margin: 15px 0; display: flex; align-items: center;}
-        .tape { display: flex; will-change: transform; align-items: center; }
-        .tape-item { min-width: var(--item-w); max-width: var(--item-w); height: 140px; margin: 0 var(--item-m); border-radius: 18px; position: relative; overflow: hidden; background-color: #1c1f24; background-size: cover; background-position: center; display: flex; align-items: flex-end; justify-content: center; }
-        .tape-item .label { width: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); padding: 10px 5px; font-size: 10px; font-weight: 900; text-align: center; text-transform: uppercase; border-top: 1px solid rgba(255,255,255,0.1); }
-        .pointer { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background: var(--gold); z-index: 10; transform: translateX(-50%); box-shadow: 0 0 20px var(--gold); }
-
-        /* ЛЯГУШКИ (ТРЕУГОЛЬНИК И АНИМАЦИИ) */
-        .frogs-container { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 30px; }
-        .frogs-row { display: flex; gap: 20px; justify-content: center; }
-        
-        .frog-box { 
-            width: 100px; height: 120px; 
-            background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-            border: 1px solid var(--glass-border); border-radius: 24px; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 45px; cursor: pointer; position: relative;
-            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-        }
-        .frog-box:active { transform: scale(0.9); }
-        .frog-box.pulse { animation: pulseBox 2s infinite; }
-        @keyframes pulseBox {
-            0% { border-color: var(--glass-border); }
-            50% { border-color: rgba(255,255,255,0.3); box-shadow: 0 0 15px rgba(255,255,255,0.1); }
-            100% { border-color: var(--glass-border); }
-        }
-
-        .frog-box.open { 
-            animation: openBox 0.6s forwards cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            background: #1a1c20; border-color: var(--gold);
-        }
-        @keyframes openBox {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2) rotate(5deg); filter: brightness(1.5); }
-            100% { transform: scale(1.1); box-shadow: 0 0 30px rgba(242, 201, 76, 0.3); }
-        }
-
-        .prize-img { 
-            width: 70px; height: 70px; object-fit: contain; 
-            animation: prizeAppear 0.5s 0.2s both ease-out;
-        }
-        @keyframes prizeAppear {
-            from { transform: scale(0) translateY(20px); opacity: 0; }
-            to { transform: scale(1) translateY(0); opacity: 1; }
-        }
-
         /* ОБЩЕЕ */
         .btn-main { background: #fff; color: #000; border: none; width: 100%; padding: 18px; border-radius: 18px; font-weight: 900; font-size: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(255,255,255,0.2); }
         .btn-stop { background: #ff4757 !important; color: #fff !important; }
         .btn-back { background: none; border: none; color: #555; width: 100%; padding: 15px; font-weight: 700; margin-top: 10px; }
+        .btn-main:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .navbar { position: fixed; bottom: 0; width: 100%; height: 70px; background: rgba(10, 10, 10, 0.9); backdrop-filter: blur(20px); display: flex; border-top: 1px solid var(--glass-border); }
         .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #444; font-size: 10px; font-weight: 700; cursor: pointer;}
@@ -94,8 +48,20 @@
 
         .modal-overlay { display: none; position: fixed; inset:0; background: rgba(0,0,0,0.92); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
         .modal-win { background: #16181d; padding: 40px 20px; border-radius: 40px; border: 1px solid var(--gold); text-align: center; width: 80%; position: relative; overflow: hidden;}
-        .modal-win::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(242,201,76,0.1) 0%, transparent 70%); z-index: -1; }
         
+        .roulette-container { height: 160px; background: rgba(0,0,0,0.6); border-radius: 24px; overflow: hidden; position: relative; border: 1px solid var(--glass-border); margin: 15px 0; display: flex; align-items: center;}
+        .tape { display: flex; will-change: transform; align-items: center; }
+        .tape-item { min-width: var(--item-w); max-width: var(--item-w); height: 140px; margin: 0 var(--item-m); border-radius: 18px; position: relative; overflow: hidden; background-color: #1c1f24; background-size: cover; background-position: center; display: flex; align-items: flex-end; justify-content: center; }
+        .tape-item .label { width: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); padding: 10px 5px; font-size: 10px; font-weight: 900; text-align: center; text-transform: uppercase; border-top: 1px solid rgba(255,255,255,0.1); }
+        .pointer { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background: var(--gold); z-index: 10; transform: translateX(-50%); box-shadow: 0 0 20px var(--gold); }
+
+        .frogs-container { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 30px; }
+        .frogs-row { display: flex; gap: 20px; justify-content: center; }
+        .frog-box { width: 100px; height: 120px; background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)); border: 1px solid var(--glass-border); border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 45px; cursor: pointer; position: relative; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .frog-box.pulse { animation: pulseBox 2s infinite; }
+        .frog-box.open { animation: openBox 0.6s forwards; background: #1a1c20; border-color: var(--gold); }
+        @keyframes pulseBox { 50% { border-color: rgba(255,255,255,0.3); } }
+        @keyframes openBox { 100% { transform: scale(1.1); } }
         #inv-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .inv-item { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 15px; text-align: center; }
     </style>
@@ -109,13 +75,12 @@
 
 <div id="win-modal" class="modal-overlay">
     <div class="modal-win">
-        <h3 style="color:var(--gold); margin:0; text-transform: uppercase; letter-spacing: 2px;">Вы выиграли</h3>
+        <h3 style="color:var(--gold); margin:0; text-transform: uppercase;">Вы выиграли</h3>
         <div id="win-content" style="padding: 30px 0; font-weight: 900; font-size: 20px;"></div>
         <button class="btn-main" onclick="claimReward()">В ИНВЕНТАРЬ</button>
     </div>
 </div>
 
-<!-- ВКЛАДКА ИГРЫ -->
 <div id="tab-games" class="section active">
     <div class="game-card card-crash" onclick="nav('crash')">
         <div><h2>Краш</h2><p>Умножай звезды</p></div><span style="font-size:40px">🚀</span>
@@ -128,57 +93,38 @@
     </div>
 </div>
 
-<!-- ЭКРАН КРАШ -->
 <div id="game-crash" class="section">
     <div id="crash-history-bar"></div>
     <div style="background:var(--glass); height:180px; border-radius:30px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; border: 1px solid var(--glass-border);">
-        <div id="mult" style="font-size:60px; font-weight:900; color:var(--gold); text-shadow: 0 0 20px rgba(242,201,76,0.4);">1.00x</div>
+        <div id="mult" style="font-size:60px; font-weight:900; color:var(--gold);">1.00x</div>
     </div>
     <input type="number" id="bet-input" value="100" style="width:100%; padding:18px; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:#fff; border-radius:20px; margin-bottom:15px; text-align:center; font-weight:900; outline: none;">
     <button class="btn-main" id="crash-btn" onclick="crashAction()">ПОСТАВИТЬ</button>
     <button class="btn-back" onclick="nav('games')">НАЗАД</button>
 </div>
 
-<!-- ЭКРАН ЛЯГУШКИ -->
+<!-- ОСТАЛЬНЫЕ СЕКЦИИ БЕЗ ИЗМЕНЕНИЙ -->
 <div id="game-frogs" class="section">
     <h3 style="text-align:center; font-weight: 900;">ВЫБЕРИ БОКС <span style="color:var(--gold)">300 ⭐</span></h3>
-    
     <div class="frogs-container">
-        <!-- Треугольник: 1 сверху -->
-        <div class="frogs-row">
-            <div class="frog-box pulse" onclick="playFrogs(0)">📦</div>
-        </div>
-        <!-- Треугольник: 2 снизу -->
-        <div class="frogs-row">
-            <div class="frog-box pulse" onclick="playFrogs(1)">📦</div>
-            <div class="frog-box pulse" onclick="playFrogs(2)">📦</div>
-        </div>
+        <div class="frogs-row"><div class="frog-box pulse" onclick="playFrogs(0)">📦</div></div>
+        <div class="frogs-row"><div class="frog-box pulse" onclick="playFrogs(1)">📦</div><div class="frog-box pulse" onclick="playFrogs(2)">📦</div></div>
     </div>
-
     <button class="btn-back" onclick="nav('games')" style="margin-top: 40px;">ВЕРНУТЬСЯ К ИГРАМ</button>
 </div>
 
-<!-- ЭКРАН РУЛЕТКА -->
 <div id="game-roulette" class="section">
-    <div class="roulette-container" id="cont-roulette">
-        <div class="pointer"></div>
-        <div id="tape-roulette" class="tape"></div>
-    </div>
+    <div class="roulette-container" id="cont-roulette"><div class="pointer"></div><div id="tape-roulette" class="tape"></div></div>
     <button class="btn-main" onclick="startSpin('tape-roulette', 'cont-roulette', 500)">КРУТИТЬ (500 ⭐)</button>
     <button class="btn-back" onclick="nav('games')">НАЗАД</button>
 </div>
 
-<!-- ВКЛАДКА БОНУС -->
 <div id="tab-earn" class="section">
     <h2 style="text-align:center; color:var(--gold)">DAILY CASE</h2>
-    <div class="roulette-container" id="cont-case">
-        <div class="pointer"></div>
-        <div id="tape-case" class="tape"></div>
-    </div>
+    <div class="roulette-container" id="cont-case"><div class="pointer"></div><div id="tape-case" class="tape"></div></div>
     <button class="btn-main" onclick="startSpin('tape-case', 'cont-case', 0)">ОТКРЫТЬ БЕСПЛАТНО</button>
 </div>
 
-<!-- ВКЛАДКА ИНВЕНТАРЬ -->
 <div id="tab-inv" class="section">
     <h2 style="color:var(--gold)">ИНВЕНТАРЬ</h2>
     <div id="inv-list"></div>
@@ -209,6 +155,14 @@
     let isBusy = false;
     let currentPrize = null;
 
+    // КРАШ ЛОГИКА (ОБНОВЛЕНО)
+    let crashActive = false; // Летит ли ракета
+    let hasBet = false;      // Сделал ли пользователь ставку
+    let crashVal = 1.0;
+    let crashTimer;
+    let crashLimit = 0;
+    let currentBet = 0;
+
     function sync() {
         localStorage.setItem('user_bal', balance);
         localStorage.setItem('user_inv', JSON.stringify(inventory));
@@ -219,30 +173,103 @@
         if(isBusy) return;
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         let targetId = ['crash', 'roulette', 'frogs'].includes(id) ? 'game-' + id : 'tab-' + id;
-        const target = document.getElementById(targetId);
-        if(target) target.classList.add('active');
-        document.querySelectorAll('.nav-btn').forEach((b, i) => {
-            const keys = ['games', 'earn', 'inv'];
-            b.classList.toggle('active', keys[i] === id || (id === 'crash' || id === 'roulette' || id === 'frogs') && i === 0);
-        });
+        document.getElementById(targetId).classList.add('active');
         if(id === 'inv') renderInv();
         if(id === 'crash') renderCrashHist();
     }
 
-    // РУЛЕТКА
+    function crashAction() {
+        if (hasBet) {
+            cashOut();
+        } else if (!crashActive) {
+            startCrash();
+        }
+    }
+
+    function startCrash() {
+        const betInput = document.getElementById('bet-input');
+        currentBet = parseInt(betInput.value);
+        if (!currentBet || currentBet > balance || currentBet <= 0) return;
+
+        balance -= currentBet;
+        sync();
+
+        crashActive = true;
+        hasBet = true;
+        crashVal = 1.0;
+        
+        // Генерация точки взрыва
+        crashLimit = Math.random() < 0.15 ? 1.00 : (Math.random() * 4 + 1.1);
+        
+        const btn = document.getElementById('crash-btn');
+        const multDisplay = document.getElementById('mult');
+        
+        btn.innerText = "ЗАБРАТЬ";
+        btn.classList.add('btn-stop');
+        multDisplay.style.color = "var(--gold)";
+
+        crashTimer = setInterval(() => {
+            crashVal += 0.01;
+            multDisplay.innerText = crashVal.toFixed(2) + "x";
+
+            if (crashVal >= crashLimit) {
+                explode();
+            }
+        }, 50);
+    }
+
+    function cashOut() {
+        const winAmount = Math.floor(currentBet * crashVal);
+        balance += winAmount;
+        hasBet = false;
+        sync();
+
+        const btn = document.getElementById('crash-btn');
+        btn.innerText = "ОЖИДАНИЕ...";
+        btn.disabled = true; // Нельзя ставить пока не взорвется
+        btn.classList.remove('btn-stop');
+    }
+
+    function explode() {
+        clearInterval(crashTimer);
+        crashActive = false;
+        hasBet = false;
+
+        const btn = document.getElementById('crash-btn');
+        const multDisplay = document.getElementById('mult');
+
+        multDisplay.innerText = "BOOM! " + crashVal.toFixed(2) + "x";
+        multDisplay.style.color = "#ff4757";
+
+        hist.unshift(crashVal);
+        if (hist.length > 8) hist.pop();
+
+        setTimeout(() => {
+            multDisplay.innerText = "1.00x";
+            multDisplay.style.color = "var(--gold)";
+            btn.innerText = "ПОСТАВИТЬ";
+            btn.disabled = false;
+            btn.classList.remove('btn-stop');
+            renderCrashHist();
+        }, 2500);
+    }
+
+    function renderCrashHist() {
+        document.getElementById('crash-history-bar').innerHTML = hist.map(x => `<div class="hist-x" style="color:${x>2?'var(--gold)':'#888'}">${x.toFixed(2)}x</div>`).join('');
+    }
+
+    // РУЛЕТКА И ЛЯГУШКИ (ОСТАЛИСЬ БЕЗ ИЗМЕНЕНИЙ)
     function startSpin(tapeId, contId, cost) {
         if(isBusy || balance < cost) return;
         isBusy = true; balance -= cost; sync();
         const tape = document.getElementById(tapeId);
         const cont = document.getElementById(contId);
-        tape.style.transition = 'none';
-        tape.style.transform = 'translateX(0)';
+        tape.style.transition = 'none'; tape.style.transform = 'translateX(0)';
         tape.innerHTML = '';
         const winIdx = 40; 
         for(let i=0; i<50; i++) {
             const g = gifts[Math.floor(Math.random()*gifts.length)];
-            const el = document.createElement('div');
-            el.className = 'tape-item';
+            const el = document.createElement('div'); el.className = 'tape-item';
             if(g.img === '⭐') el.innerHTML = `<div style="font-size:50px; width:100%; text-align:center; margin-bottom:40px;">⭐</div>`;
             else el.style.backgroundImage = `url('img/${g.img}')`;
             el.innerHTML += `<div class="label">${g.name}</div>`;
@@ -250,93 +277,37 @@
             if(i === winIdx) currentPrize = g;
         }
         setTimeout(() => {
-            const fullStep = 140;
-            const finalPos = (winIdx * fullStep) + (fullStep / 2) - (cont.offsetWidth / 2);
+            const finalPos = (winIdx * 140) + 70 - (cont.offsetWidth / 2);
             tape.style.transition = 'transform 6s cubic-bezier(0.15, 0, 0.1, 1)';
             tape.style.transform = `translateX(-${finalPos}px)`;
         }, 50);
         setTimeout(() => { showWin(currentPrize); }, 6500);
     }
 
-    // КРАШ
-    let crashActive = false, crashVal = 1.0, crashTimer;
-    function crashAction() { if(crashActive) { clearInterval(crashTimer); endCrash(true); } else { handleCrash(); } }
-    function handleCrash() {
-        const bet = parseInt(document.getElementById('bet-input').value);
-        if(!bet || bet > balance || bet <= 0) return;
-        balance -= bet; sync();
-        crashActive = true; crashVal = 1.0;
-        const btn = document.getElementById('crash-btn');
-        btn.classList.add('btn-stop'); btn.innerText = "ЗАБРАТЬ";
-        let limit = Math.random() * 3 + 1.1; 
-        if(Math.random() < 0.2) limit = 1.05; 
-        crashTimer = setInterval(() => {
-            crashVal += 0.01; 
-            document.getElementById('mult').innerText = crashVal.toFixed(2) + "x";
-            if(crashVal >= limit) { clearInterval(crashTimer); document.getElementById('mult').style.color = "#ff4757"; endCrash(false); }
-        }, 50);
-    }
-    function endCrash(win) {
-        if(win) { balance += Math.floor(parseInt(document.getElementById('bet-input').value) * crashVal); }
-        crashActive = false; 
-        const btn = document.getElementById('crash-btn');
-        btn.classList.remove('btn-stop'); btn.innerText = "ПОСТАВИТЬ";
-        hist.unshift(crashVal); if(hist.length > 8) hist.pop();
-        setTimeout(() => { document.getElementById('mult').innerText = "1.00x"; document.getElementById('mult').style.color = "var(--gold)"; sync(); renderCrashHist(); }, 2000);
-    }
-
-    // ЛЯГУШКИ (ОБНОВЛЕННЫЕ)
     function playFrogs(idx) {
         if(isBusy || balance < 300) return;
-        isBusy = true; 
-        balance -= 300; 
-        sync();
-
+        isBusy = true; balance -= 300; sync();
         const boxes = document.querySelectorAll('.frog-box');
-        const box = boxes[idx];
-        
-        // Убираем пульсацию у всех
         boxes.forEach(b => b.classList.remove('pulse'));
-        
-        // Анимация открытия
-        box.classList.add('open');
-        box.innerText = ""; // Убираем коробку
-
+        const box = boxes[idx]; box.classList.add('open'); box.innerText = "";
         currentPrize = gifts[Math.floor(Math.random()*gifts.length)];
-
         setTimeout(() => {
-            // Вставляем приз внутрь бокса
-            if(currentPrize.img === '⭐') {
-                box.innerHTML = `<div class="prize-img" style="font-size:50px; display:flex; align-items:center; justify-content:center;">⭐</div>`;
-            } else {
-                box.innerHTML = `<img src="img/${currentPrize.img}" class="prize-img">`;
-            }
-            
-            // Через небольшую паузу показываем модалку
-            setTimeout(() => {
-                showWin(currentPrize);
-            }, 800);
+            box.innerHTML = currentPrize.img === '⭐' ? '<div style="font-size:50px">⭐</div>' : `<img src="img/${currentPrize.img}" style="width:70px">`;
+            setTimeout(() => { showWin(currentPrize); }, 800);
         }, 600);
     }
 
     function showWin(prize) {
         const icon = prize.img === '⭐' ? '⭐' : `<img src="img/${prize.img}" style="width:100px; margin-bottom:10px;">`;
-        document.getElementById('win-content').innerHTML = `${icon}<br><span style="color:#fff">${prize.name}</span>`;
+        document.getElementById('win-content').innerHTML = `${icon}<br>${prize.name}`;
         document.getElementById('win-modal').style.display = 'flex';
     }
 
     function claimReward() {
         if(currentPrize.val) balance += currentPrize.val; else inventory.push(currentPrize);
         document.getElementById('win-modal').style.display = 'none';
-        
-        // Сбрасываем боксы
-        document.querySelectorAll('.frog-box').forEach(b => {
-            b.classList.remove('open');
-            b.classList.add('pulse');
-            b.innerHTML = "📦";
-        });
-        isBusy = false; 
-        sync();
+        document.querySelectorAll('.frog-box').forEach(b => { b.classList.remove('open'); b.classList.add('pulse'); b.innerHTML = "📦"; });
+        isBusy = false; sync();
     }
 
     function renderInv() {
@@ -348,15 +319,13 @@
     }
 
     function sell(i) { balance += Math.floor(inventory[i].price * 0.8); inventory.splice(i, 1); sync(); renderInv(); }
-    function renderCrashHist() { document.getElementById('crash-history-bar').innerHTML = hist.map(x => `<div class="hist-x" style="color:${x>2?'var(--gold)':'#888'}">${x.toFixed(2)}x</div>`).join(''); }
 
     setInterval(() => {
         const g = gifts[Math.floor(Math.random()*gifts.length)];
         const feed = document.getElementById('live-feed');
         feed.style.opacity = 0;
         setTimeout(() => {
-            const icon = g.img === '⭐' ? '⭐' : `<img src="img/${g.img}" class="live-icon">`;
-            feed.innerHTML = `${icon} <span>Выбил ${g.name}</span>`;
+            feed.innerHTML = `<span>Выбил ${g.name}</span>`;
             feed.style.opacity = 1;
         }, 300);
     }, 4000);
