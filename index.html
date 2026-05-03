@@ -35,10 +35,14 @@
         /* РУЛЕТКА */
         .roulette-container { height: 160px; background: rgba(0,0,0,0.6); border-radius: 24px; overflow: hidden; position: relative; border: 1px solid var(--glass-border); margin: 15px 0; display: flex; align-items: center;}
         .tape { display: flex; will-change: transform; align-items: center; }
-        .tape-item { min-width: var(--item-w); max-width: var(--item-w); height: 140px; margin: 0 var(--item-m); border-radius: 18px; position: relative; overflow: hidden; background-color: #1c1f24; background-size: 70%; background-repeat: no-repeat; background-position: center; display: flex; align-items: flex-end; justify-content: center; border: 1px solid rgba(255,255,255,0.05); }
         
-        /* СТИЛЬ ДЛЯ NFT КЕЙСА (фон на всю ячейку) */
+        /* ПУНКТ 1: Фон на всю ячейку в обычной рулетке */
+        .tape-item { min-width: var(--item-w); max-width: var(--item-w); height: 140px; margin: 0 var(--item-m); border-radius: 18px; position: relative; overflow: hidden; background-color: #1c1f24; background-size: cover; background-repeat: no-repeat; background-position: center; display: flex; align-items: flex-end; justify-content: center; border: 1px solid rgba(255,255,255,0.05); }
+        
         .tape-item.nft-style { background-size: cover; border: 1px solid rgba(164, 69, 178, 0.4); }
+        
+        /* ПУНКТ 2: Убираем название в NFT рулетке */
+        .nft-style .label { display: none !important; }
 
         .tape-item .label { width: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); padding: 10px 5px; font-size: 10px; font-weight: 900; text-align: center; text-transform: uppercase; border-top: 1px solid rgba(255,255,255,0.1); z-index: 2;}
         .pointer { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background: var(--gold); z-index: 10; transform: translateX(-50%); box-shadow: 0 0 20px var(--gold); }
@@ -69,9 +73,9 @@
 
 <div id="win-modal" class="modal-overlay">
     <div class="modal-win">
-        <h3 style="color:var(--gold); margin:0;">ВЫ ВЫИГРАЛИ</h3>
+        <h3 id="win-header" style="color:var(--gold); margin:0;">ВЫ ВЫИГРАЛИ</h3>
         <div id="win-content" style="padding: 30px 0; font-weight: 900; font-size: 20px;"></div>
-        <button class="btn-main" onclick="claimReward()">В ИНВЕНТАРЬ</button>
+        <button class="btn-main" onclick="claimReward()">ОТЛИЧНО</button>
     </div>
 </div>
 
@@ -83,7 +87,7 @@
         <div><h2>Обычный Кейс</h2><p>Gifts & Stars</p></div><span style="font-size:40px">🎡</span>
     </div>
     <div class="game-card card-nft" onclick="nav('nft')">
-        <div><h2>NFT Кейс</h2><p>Эксклюзивные арты</p></div><span style="font-size:40px">💎</span>
+        <div><h2>NFT Кейс</h2><p>+888 номера, нфт юзернеймы</p></div><span style="font-size:40px">💎</span>
     </div>
     <div class="game-card card-frogs" onclick="nav('frogs')">
         <div><h2>Лягушки</h2><p>Угадай бокс</p></div><span style="font-size:40px">📦</span>
@@ -97,9 +101,9 @@
 </div>
 
 <div id="game-nft" class="section">
-    <h3 style="text-align:center; color:#a445b2;">PREMIUM NFT CASE</h3>
+    <h3 style="text-align:center; color:#a445b2;">NFT CASE</h3>
     <div class="roulette-container" id="cont-nft" style="border-color: #a445b2;"><div class="pointer"></div><div id="tape-nft" class="tape"></div></div>
-    <button class="btn-main" onclick="startSpin('tape-nft', 'cont-nft', 1500, nftGifts)" style="background: #a445b2; color: #fff;">ОТКРЫТЬ (1500 ⭐)</button>
+    <button class="btn-main" onclick="startSpin('tape-nft', 'cont-nft', 5000, nftGifts)" style="background: #a445b2; color: #fff;">ОТКРЫТЬ (5000 ⭐)</button>
     <button class="btn-back" onclick="nav('games')">НАЗАД</button>
 </div>
 
@@ -123,7 +127,7 @@
 </div>
 
 <div id="tab-earn" class="section">
-    <h2 style="text-align:center; color:var(--gold)">DAILY CASE</h2>
+    <h2 style="text-align:center; color:var(--gold)">Ежедневный кейс</h2>
     <div class="roulette-container" id="cont-case"><div class="pointer"></div><div id="tape-case" class="tape"></div></div>
     <button class="btn-main" onclick="startSpin('tape-case', 'cont-case', 0, gifts)">ОТКРЫТЬ</button>
 </div>
@@ -153,18 +157,26 @@
         {name: '150 Stars', img: '⭐', val: 150, price: 150}
     ];
 
-    // НОВЫЕ NFT (с флагом isNft для спец. стиля)
+    // ПУНКТ 2 и 3: Новые цены и наполнение NFT кейса
     const nftGifts = [
-        {name: 'Cyber Punk #1', img: 'nft1.png', price: 5000, isNft: true},
-        {name: 'Neon Ape #2', img: 'nft2.png', price: 7500, isNft: true},
-        {name: 'Future City #3', img: 'nft3.png', price: 3200, isNft: true},
-        {name: 'Digital Ghost #4', img: 'nft4.png', price: 9000, isNft: true},
-        {name: 'Pixel Lord #5', img: 'nft5.png', price: 4500, isNft: true},
-        {name: 'Crypto King #6', img: 'nft6.png', price: 12000, isNft: true},
-        {name: 'Meta Bot #7', img: 'nft7.png', price: 5500, isNft: true},
-        {name: 'Void Star #8', img: 'nft8.png', price: 8200, isNft: true},
-        {name: 'Synth Wave #9', img: 'nft9.png', price: 6100, isNft: true},
-        {name: 'Glitch Art #10', img: 'nft10.png', price: 15000, isNft: true}
+        {name: 'Cyber Punk #1', img: 'nft1.png', price: 50000, isNft: true},
+        {name: 'Neon Ape #2', img: 'nft2.png', price: 50000, isNft: true},
+        {name: 'Future City #3', img: 'nft3.png', price: 50000, isNft: true},
+        {name: 'Digital Ghost #4', img: 'nft4.png', price: 50000, isNft: true},
+        {name: 'Pixel Lord #5', img: 'nft5.png', price: 1000, isNft: true},
+        {name: 'Crypto King #6', img: 'nft6.png', price: 1000, isNft: true},
+        {name: 'Meta Bot #7', img: 'nft7.png', price: 1000, isNft: true},
+        {name: 'Void Star #8', img: 'nft8.png', price: 1000, isNft: true},
+        {name: 'Synth Wave #9', img: 'nft9.png', price: 1000, isNft: true},
+        {name: 'Glitch Art #10', img: 'nft10.png', price: 1000, isNft: true},
+        // Пустые слоты и звезды с повышенным шансом
+        {name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true},
+        {name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true},
+        {name: '50 Stars', img: '⭐', val: 50, price: 50},
+        {name: '50 Stars', img: '⭐', val: 50, price: 50},
+        {name: '100 Stars', img: '⭐', val: 100, price: 100},
+        {name: '100 Stars', img: '⭐', val: 100, price: 100},
+        {name: '150 Stars', img: '⭐', val: 150, price: 150}
     ];
 
     let balance = parseInt(localStorage.getItem('user_bal')) || 5000;
@@ -172,9 +184,6 @@
     let hist = [1.05, 2.50, 1.12, 10.40];
     let isBusy = false;
     let currentPrize = null;
-
-    // --- КРАШ ЛОГИКА ---
-    let crashActive = false, hasBet = false, crashVal = 1.0, crashTimer, crashLimit = 0, currentBet = 0;
 
     function sync() {
         localStorage.setItem('user_bal', balance);
@@ -191,7 +200,6 @@
         if(id === 'crash') renderCrashHist();
     }
 
-    // --- УНИВЕРСАЛЬНЫЙ ПРОКРУТ ---
     function startSpin(tapeId, contId, cost, pool) {
         if(isBusy || balance < cost) return;
         isBusy = true; balance -= cost; sync();
@@ -207,7 +215,9 @@
             const el = document.createElement('div');
             el.className = g.isNft ? 'tape-item nft-style' : 'tape-item';
             
-            if(g.img === '⭐') {
+            if(g.isEmpty) {
+                el.innerHTML = `<div style="font-size:40px; opacity:0.2;">💨</div>`;
+            } else if(g.img === '⭐') {
                 el.innerHTML = `<div style="font-size:50px; width:100%; text-align:center; margin-bottom:40px;">⭐</div>`;
             } else {
                 el.style.backgroundImage = `url('img/${g.img}')`;
@@ -227,19 +237,28 @@
     }
 
     function showWin(prize) {
-        const icon = prize.img === '⭐' ? '⭐' : `<img src="img/${prize.img}" style="width:${prize.isNft ? '100%' : '100px'}; border-radius:15px; margin-bottom:10px;">`;
-        document.getElementById('win-content').innerHTML = `${icon}<br>${prize.name}`;
+        const header = document.getElementById('win-header');
+        if(prize.isEmpty) {
+            header.innerText = "НИЧЕГО...";
+            document.getElementById('win-content').innerHTML = `Увы, этот слот пустой!`;
+        } else {
+            header.innerText = "ВЫ ВЫИГРАЛИ";
+            const icon = prize.img === '⭐' ? '⭐' : `<img src="img/${prize.img}" style="width:${prize.isNft ? '100%' : '100px'}; border-radius:15px; margin-bottom:10px;">`;
+            document.getElementById('win-content').innerHTML = `${icon}<br>${prize.name}`;
+        }
         document.getElementById('win-modal').style.display = 'flex';
     }
 
     function claimReward() {
-        if(currentPrize.val) balance += currentPrize.val; else inventory.push(currentPrize);
+        if(currentPrize && !currentPrize.isEmpty) {
+            if(currentPrize.val) balance += currentPrize.val; 
+            else inventory.push(currentPrize);
+        }
         document.getElementById('win-modal').style.display = 'none';
         document.querySelectorAll('.frog-box').forEach(b => { b.classList.remove('open'); b.classList.add('pulse'); b.innerHTML = "📦"; });
         isBusy = false; sync();
     }
 
-    // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
     function crashAction() { if (hasBet) cashOut(); else if (!crashActive) startCrash(); }
     function startCrash() {
         currentBet = parseInt(document.getElementById('bet-input').value);
