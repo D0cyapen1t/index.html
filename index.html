@@ -33,9 +33,9 @@
         .card-frogs { background: linear-gradient(135deg, #27ae60, #6fcf97); }
 
         .roulette-container { height: 160px; background: rgba(0,0,0,0.6); border-radius: 24px; overflow: hidden; position: relative; border: 1px solid var(--glass-border); margin: 15px 0; display: flex; align-items: center;}
-        .tape { display: flex; will-change: transform; align-items: center; }
+        .tape { display: flex; will-change: transform; align-items: center; padding-left: 0; }
         
-        .tape-item { min-width: var(--item-w); max-width: var(--item-w); height: 140px; margin: 0 var(--item-m); border-radius: 18px; position: relative; overflow: hidden; background-color: #1c1f24; background-size: cover; background-repeat: no-repeat; background-position: center; display: flex; align-items: flex-end; justify-content: center; border: 1px solid rgba(255,255,255,0.05); }
+        .tape-item { min-width: var(--item-w); max-width: var(--item-w); height: 140px; margin: 0 var(--item-m); border-radius: 18px; position: relative; overflow: hidden; background-color: #1c1f24; background-size: cover; background-repeat: no-repeat; background-position: center; display: flex; align-items: flex-end; justify-content: center; border: 1px solid rgba(255,255,255,0.05); flex-shrink: 0; }
         .tape-item.nft-style { background-size: cover; border: 1px solid rgba(164, 69, 178, 0.4); }
         .nft-style .label { display: none !important; }
 
@@ -199,9 +199,13 @@
         document.getElementById(targetId).classList.add('active');
         if(id === 'inv') renderInv();
         if(id === 'crash') renderCrashHist();
+        
+        // --- ДОБАВЛЕНО: Заполнять ленты при переключении на игру ---
+        if(id === 'roulette') preFillTape('tape-roulette', gifts);
+        if(id === 'nft') preFillTape('tape-nft', nftGifts);
+        if(id === 'earn') preFillTape('tape-case', gifts);
     }
 
-    // ПУНКТ 4: Живая лента с картинками
     function initLiveFeed() {
         const feed = document.getElementById('live-feed');
         const names = ['Ivan', 'Dmitry', 'Masha', 'Alex', 'Sasha', 'Kira', 'Nikita'];
@@ -219,14 +223,39 @@
         }, 4000);
     }
 
-    // ПУНКТ 1: Исправленная центровка
+    // --- НОВАЯ ФУНКЦИЯ: Предварительное заполнение ленты ---
+    function preFillTape(tapeId, pool) {
+        const tape = document.getElementById(tapeId);
+        // Если лента уже заполнена, не тратим ресурсы
+        if (tape.children.length > 0) return; 
+
+        tape.style.transition = 'none';
+        tape.style.transform = 'translateX(0)';
+        tape.innerHTML = '';
+        
+        // Заполняем 20 элементами (этого хватит, чтобы перекрыть видимую область)
+        for(let i=0; i<20; i++) {
+            const g = pool[Math.floor(Math.random()*pool.length)];
+            const el = document.createElement('div');
+            el.className = g.isNft ? 'tape-item nft-style' : 'tape-item';
+            if(g.isEmpty) el.innerHTML = `<div style="font-size:40px; opacity:0.2;">💨</div>`;
+            else if(g.img === '⭐') el.innerHTML = `<div style="font-size:50px; width:100%; text-align:center; margin-bottom:40px;">⭐</div>`;
+            else el.style.backgroundImage = `url('img/${g.img}')`;
+            el.innerHTML += `<div class="label">${g.name}</div>`;
+            tape.appendChild(el);
+        }
+    }
+
     function startSpin(tapeId, contId, cost, pool) {
         if(isBusy || balance < cost) return;
         isBusy = true; balance -= cost; sync();
         const tape = document.getElementById(tapeId);
         const cont = document.getElementById(contId);
+        
+        // Важно: В момент старта сбрасываем позицию и очищаем, чтобы сгенерировать длинную ленту для прокрутки
         tape.style.transition = 'none'; tape.style.transform = 'translateX(0)';
         tape.innerHTML = '';
+        
         const winIdx = 35; 
         const itemWidth = 130 + 10; // ширина + margin
         for(let i=0; i<45; i++) {
@@ -259,6 +288,10 @@
             document.getElementById('win-content').innerHTML = `${icon}<br>${prize.name}`;
         }
         document.getElementById('win-modal').style.display = 'flex';
+        
+        // --- ДОБАВЛЕНО: После закрытия окна выигрыша, лента снова станет пустой. ---
+        // Это заставит nav() вызвать preFillTape заново, когда игрок вернется.
+        // Или можно просто сразу вызвать preFillTape здесь для текущей ленты.
     }
 
     function claimReward() {
@@ -271,9 +304,13 @@
             b.classList.remove('open', 'reveal'); b.classList.add('pulse'); b.innerHTML = "📦"; 
         });
         isBusy = false; sync();
+        
+        // Очищаем ленту текущей активной игры, чтобы при следующем входе она заполнилась заново статикой
+        const activeSection = document.querySelector('.section.active');
+        const tape = activeSection.querySelector('.tape');
+        if (tape) tape.innerHTML = ''; 
     }
 
-    // ПУНКТ 3: Краш без багов
     function crashAction() { if (hasBet) cashOut(); else if (!crashActive) startCrash(); }
     function startCrash() {
         currentBet = parseInt(document.getElementById('bet-input').value);
@@ -311,26 +348,20 @@
     }
     function renderCrashHist() { document.getElementById('crash-history-bar').innerHTML = hist.map(x => `<div class="hist-x" style="color:${x>2?'var(--gold)':'#888'}">${x.toFixed(2)}x</div>`).join(''); }
 
-    // ПУНКТ 2: Лягушки с отображением всех призов и шансами
     function playFrogs(idx) {
         if(isBusy || balance < 300) return;
         isBusy = true; balance -= 300; sync();
         const boxes = document.querySelectorAll('.frog-box');
-        
-        // Шансы: 80% на звезды, 20% на предмет
         const getPrize = () => {
             if(Math.random() > 0.2) return gifts.find(g => g.img === '⭐');
             return gifts.filter(g => g.img !== '⭐')[Math.floor(Math.random() * (gifts.length-1))];
         };
-
         const results = [getPrize(), getPrize(), getPrize()];
         currentPrize = results[idx];
-
         boxes.forEach((box, i) => {
             box.classList.remove('pulse');
             const p = results[i];
             const content = p.img === '⭐' ? '⭐' : `<img src="img/${p.img}" style="width:60px">`;
-            
             if(i === idx) {
                 box.classList.add('open');
                 box.innerHTML = content;
@@ -341,7 +372,6 @@
                 }, 500);
             }
         });
-
         setTimeout(() => showWin(currentPrize), 1200);
     }
 
