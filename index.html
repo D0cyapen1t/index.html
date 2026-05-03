@@ -1,391 +1,668 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --gold: #f2c94c; 
-            --bg: radial-gradient(circle at top, #1a1c20 0%, #000000 100%); 
-            --glass: rgba(255, 255, 255, 0.05); 
+        :root {
+            --gold: #f2c94c;
+            --bg: radial-gradient(circle at top, #1a1c20 0%, #000000 100%);
+            --glass: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.1);
             --item-w: 130px;
             --item-m: 5px;
         }
 
-        body { background: var(--bg); color: #fff; font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; overflow: hidden; user-select: none; height: 100vh; }
+        body {
+            background: var(--bg);
+            color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            user-select: none;
+            height: 100vh;
+        }
 
-        .header { padding: 15px; display: flex; justify-content: space-between; align-items: center; height: 60px; box-sizing: border-box; position: relative; z-index: 100;}
-        .live-feed { font-size: 10px; font-weight: 700; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--glass-border); min-width: 150px; transition: 0.3s; height: 35px; overflow: hidden;}
-        .live-feed img { height: 20px; border-radius: 4px; }
-        .balance-pill { background: var(--glass); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); padding: 8px 15px; border-radius: 12px; font-size: 14px; font-weight: 900; color: var(--gold); }
+        /* HEADER */
+        .header {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 100;
+        }
 
-        .section { display: none; height: calc(100vh - 130px); padding: 15px; box-sizing: border-box; overflow-y: auto; padding-bottom: 80px; }
-        .active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .live-feed {
+            font-size: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            min-width: 150px;
+            transition: 0.3s;
+            height: 35px;
+            overflow: hidden;
+        }
 
-        .game-card { border-radius: 24px; padding: 20px; min-height: 100px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); }
+        .live-feed img {
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .balance-pill {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            padding: 8px 15px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--gold);
+        }
+
+        /* SECTIONS */
+        .section {
+            display: none;
+            height: calc(100vh - 130px);
+            padding: 15px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            padding-bottom: 80px;
+        }
+
+        .active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* CARDS */
+        .game-card {
+            border-radius: 24px;
+            padding: 20px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
         .card-crash { background: linear-gradient(135deg, #2f80ed, #56ccf2); }
         .card-roulette { background: linear-gradient(135deg, #eb5757, #f2994a); }
         .card-nft { background: linear-gradient(135deg, #a445b2, #d41872); }
         .card-frogs { background: linear-gradient(135deg, #27ae60, #6fcf97); }
 
-        .roulette-container { height: 160px; background: rgba(0,0,0,0.6); border-radius: 24px; overflow: hidden; position: relative; border: 1px solid var(--glass-border); margin: 15px 0; display: flex; align-items: center;}
-        .tape { display: flex; will-change: transform; align-items: center; padding-left: 0; }
-        
-        .tape-item { min-width: var(--item-w); max-width: var(--item-w); height: 140px; margin: 0 var(--item-m); border-radius: 18px; position: relative; overflow: hidden; background-color: #1c1f24; background-size: cover; background-repeat: no-repeat; background-position: center; display: flex; align-items: flex-end; justify-content: center; border: 1px solid rgba(255,255,255,0.05); flex-shrink: 0; }
-        .tape-item.nft-style { background-size: cover; border: 1px solid rgba(164, 69, 178, 0.4); }
-        .nft-style .label { display: none !important; }
+        /* ROULETTE STYLES */
+        .roulette-container {
+            height: 160px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--glass-border);
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+        }
 
-        .tape-item .label { width: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); padding: 10px 5px; font-size: 10px; font-weight: 900; text-align: center; text-transform: uppercase; border-top: 1px solid rgba(255,255,255,0.1); z-index: 2;}
-        .pointer { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background: var(--gold); z-index: 10; transform: translateX(-50%); box-shadow: 0 0 20px var(--gold); }
+        .tape {
+            display: flex;
+            will-change: transform;
+            align-items: center;
+        }
 
-        .btn-main { background: #fff; color: #000; border: none; width: 100%; padding: 18px; border-radius: 18px; font-weight: 900; font-size: 16px; cursor: pointer; }
+        .tape-item {
+            min-width: var(--item-w);
+            max-width: var(--item-w);
+            height: 140px;
+            margin: 0 var(--item-m);
+            border-radius: 18px;
+            position: relative;
+            overflow: hidden;
+            background-color: #1c1f24;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            flex-shrink: 0;
+        }
+
+        .tape-item.nft-style {
+            background-size: cover;
+            border: 1px solid rgba(164, 69, 178, 0.4);
+        }
+
+        .nft-style .label {
+            display: none !important;
+        }
+
+        .tape-item .label {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            padding: 10px 5px;
+            font-size: 10px;
+            font-weight: 900;
+            text-align: center;
+            text-transform: uppercase;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 2;
+        }
+
+        .pointer {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--gold);
+            z-index: 10;
+            transform: translateX(-50%);
+            box-shadow: 0 0 20px var(--gold);
+        }
+
+        /* BUTTONS */
+        .btn-main {
+            background: #fff;
+            color: #000;
+            border: none;
+            width: 100%;
+            padding: 18px;
+            border-radius: 18px;
+            font-weight: 900;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
         .btn-stop { background: #ff4757 !important; color: #fff !important; }
         .btn-back { background: none; border: none; color: #555; width: 100%; padding: 15px; font-weight: 700; }
 
-        .navbar { position: fixed; bottom: 0; width: 100%; height: 70px; background: rgba(10, 10, 10, 0.9); display: flex; border-top: 1px solid var(--glass-border); }
-        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #444; font-size: 10px; font-weight: 700; }
+        /* NAVBAR */
+        .navbar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 70px;
+            background: rgba(10, 10, 10, 0.9);
+            display: flex;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .nav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #444;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
         .nav-btn.active { color: #fff; }
 
-        .modal-overlay { display: none; position: fixed; inset:0; background: rgba(0,0,0,0.92); z-index: 1000; align-items: center; justify-content: center; }
-        .modal-win { background: #16181d; padding: 40px 20px; border-radius: 40px; border: 1px solid var(--gold); text-align: center; width: 80%; }
-        #inv-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .inv-item { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 15px; text-align: center; }
-        
-        #crash-history-bar { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
-        .hist-x { padding: 4px 10px; border-radius: 8px; background: var(--glass); border: 1px solid var(--glass-border); font-size: 11px; font-weight: 900; }
+        /* MODALS */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.92);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
 
+        .modal-win {
+            background: #16181d;
+            padding: 40px 20px;
+            border-radius: 40px;
+            border: 1px solid var(--gold);
+            text-align: center;
+            width: 80%;
+        }
+
+        #inv-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .inv-item {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        /* CRASH */
+        #crash-history-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            scrollbar-width: none;
+        }
+
+        .hist-x {
+            padding: 4px 10px;
+            border-radius: 8px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        /* FROGS */
         .frogs-container { display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 20px; }
         .frogs-row { display: flex; gap: 20px; }
-        .frog-box { width: 85px; height: 85px; background: var(--glass); border: 2px solid var(--glass-border); border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer; transition: 0.3s; overflow: hidden; }
+        .frog-box {
+            width: 85px;
+            height: 85px;
+            background: var(--glass);
+            border: 2px solid var(--glass-border);
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            cursor: pointer;
+            transition: 0.3s;
+            overflow: hidden;
+        }
+
         .frog-box.open { border-color: var(--gold); transform: scale(1.05); background: rgba(242, 201, 76, 0.1); }
         .frog-box.reveal { opacity: 0.5; filter: grayscale(0.5); }
         .pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
+
 <body>
 
-<div class="header">
-    <div class="live-feed" id="live-feed">⚡ Загрузка...</div>
-    <div class="balance-pill">⭐ <span id="balance-val">0</span></div>
-</div>
-
-<div id="win-modal" class="modal-overlay">
-    <div class="modal-win">
-        <h3 id="win-header" style="color:var(--gold); margin:0;">ВЫ ВЫИГРАЛИ</h3>
-        <div id="win-content" style="padding: 30px 0; font-weight: 900; font-size: 20px;"></div>
-        <button class="btn-main" onclick="claimReward()">ОТЛИЧНО</button>
+    <div class="header">
+        <div class="live-feed" id="live-feed">⚡ Загрузка...</div>
+        <div class="balance-pill">⭐ <span id="balance-val">0</span></div>
     </div>
-</div>
 
-<div id="tab-games" class="section active">
-    <div class="game-card card-crash" onclick="nav('crash')">
-        <div><h2>Краш</h2><p>Умножай звезды</p></div><span style="font-size:40px">🚀</span>
+    <div id="win-modal" class="modal-overlay">
+        <div class="modal-win">
+            <h3 id="win-header" style="color:var(--gold); margin:0;">ВЫ ВЫИГРАЛИ</h3>
+            <div id="win-content" style="padding: 30px 0; font-weight: 900; font-size: 20px;"></div>
+            <button class="btn-main" onclick="claimReward()">ОТЛИЧНО</button>
+        </div>
     </div>
-    <div class="game-card card-roulette" onclick="nav('roulette')">
-        <div><h2>Обычный Кейс</h2><p>Gifts & Stars</p></div><span style="font-size:40px">🎡</span>
+
+    <div id="tab-games" class="section active">
+        <div class="game-card card-crash" onclick="nav('crash')">
+            <div><h2>Краш</h2><p>Умножай звезды</p></div><span style="font-size:40px">🚀</span>
+        </div>
+        <div class="game-card card-roulette" onclick="nav('roulette')">
+            <div><h2>Обычный Кейс</h2><p>Gifts & Stars</p></div><span style="font-size:40px">🎡</span>
+        </div>
+        <div class="game-card card-nft" onclick="nav('nft')">
+            <div><h2>NFT Кейс</h2><p>+888 номера, нфт юзернеймы</p></div><span style="font-size:40px">💎</span>
+        </div>
+        <div class="game-card card-frogs" onclick="nav('frogs')">
+            <div><h2>Лягушки</h2><p>Угадай бокс</p></div><span style="font-size:40px">📦</span>
+        </div>
     </div>
-    <div class="game-card card-nft" onclick="nav('nft')">
-        <div><h2>NFT Кейс</h2><p>+888 номера, нфт юзернеймы</p></div><span style="font-size:40px">💎</span>
+
+    <div id="game-roulette" class="section">
+        <div class="roulette-container" id="cont-roulette">
+            <div class="pointer"></div>
+            <div id="tape-roulette" class="tape"></div>
+        </div>
+        <button class="btn-main" onclick="startSpin('tape-roulette', 'cont-roulette', 500, gifts)">КРУТИТЬ (500 ⭐)</button>
+        <button class="btn-back" onclick="nav('games')">НАЗАД</button>
     </div>
-    <div class="game-card card-frogs" onclick="nav('frogs')">
-        <div><h2>Лягушки</h2><p>Угадай бокс</p></div><span style="font-size:40px">📦</span>
+
+    <div id="game-nft" class="section">
+        <h3 style="text-align:center; color:#a445b2;">NFT CASE</h3>
+        <div class="roulette-container" id="cont-nft" style="border-color: #a445b2;">
+            <div class="pointer"></div>
+            <div id="tape-nft" class="tape"></div>
+        </div>
+        <button class="btn-main" onclick="startSpin('tape-nft', 'cont-nft', 5000, nftGifts)" style="background: #a445b2; color: #fff;">ОТКРЫТЬ (5000 ⭐)</button>
+        <button class="btn-back" onclick="nav('games')">НАЗАД</button>
     </div>
-</div>
 
-<div id="game-roulette" class="section">
-    <div class="roulette-container" id="cont-roulette"><div class="pointer"></div><div id="tape-roulette" class="tape"></div></div>
-    <button class="btn-main" onclick="startSpin('tape-roulette', 'cont-roulette', 500, gifts)">КРУТИТЬ (500 ⭐)</button>
-    <button class="btn-back" onclick="nav('games')">НАЗАД</button>
-</div>
-
-<div id="game-nft" class="section">
-    <h3 style="text-align:center; color:#a445b2;">NFT CASE</h3>
-    <div class="roulette-container" id="cont-nft" style="border-color: #a445b2;"><div class="pointer"></div><div id="tape-nft" class="tape"></div></div>
-    <button class="btn-main" onclick="startSpin('tape-nft', 'cont-nft', 5000, nftGifts)" style="background: #a445b2; color: #fff;">ОТКРЫТЬ (5000 ⭐)</button>
-    <button class="btn-back" onclick="nav('games')">НАЗАД</button>
-</div>
-
-<div id="game-crash" class="section">
-    <div id="crash-history-bar"></div>
-    <div style="background:var(--glass); height:180px; border-radius:30px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; border: 1px solid var(--glass-border);">
-        <div id="mult" style="font-size:60px; font-weight:900; color:var(--gold);">1.00x</div>
+    <div id="game-crash" class="section">
+        <div id="crash-history-bar"></div>
+        <div style="background:var(--glass); height:180px; border-radius:30px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; border: 1px solid var(--glass-border);">
+            <div id="mult" style="font-size:60px; font-weight:900; color:var(--gold);">1.00x</div>
+        </div>
+        <input type="number" id="bet-input" value="100" style="width:100%; padding:18px; background:var(--glass); border:1px solid var(--glass-border); color:#fff; border-radius:20px; margin-bottom:15px; text-align:center;">
+        <button class="btn-main" id="crash-btn" onclick="crashAction()">ПОСТАВИТЬ</button>
+        <button class="btn-back" onclick="nav('games')">НАЗАД</button>
     </div>
-    <input type="number" id="bet-input" value="100" style="width:100%; padding:18px; background:var(--glass); border:1px solid var(--glass-border); color:#fff; border-radius:20px; margin-bottom:15px; text-align:center;">
-    <button class="btn-main" id="crash-btn" onclick="crashAction()">ПОСТАВИТЬ</button>
-    <button class="btn-back" onclick="nav('games')">НАЗАД</button>
-</div>
 
-<div id="game-frogs" class="section">
-    <h3 style="text-align:center">ВЫБЕРИ БОКС</h3>
-    <div class="frogs-container">
-        <div class="frogs-row"><div class="frog-box pulse" data-idx="0" onclick="playFrogs(0)">📦</div></div>
-        <div class="frogs-row"><div class="frog-box pulse" data-idx="1" onclick="playFrogs(1)">📦</div><div class="frog-box pulse" data-idx="2" onclick="playFrogs(2)">📦</div></div>
+    <div id="game-frogs" class="section">
+        <h3 style="text-align:center">ВЫБЕРИ БОКС</h3>
+        <div class="frogs-container">
+            <div class="frogs-row">
+                <div class="frog-box pulse" data-idx="0" onclick="playFrogs(0)">📦</div>
+            </div>
+            <div class="frogs-row">
+                <div class="frog-box pulse" data-idx="1" onclick="playFrogs(1)">📦</div>
+                <div class="frog-box pulse" data-idx="2" onclick="playFrogs(2)">📦</div>
+            </div>
+        </div>
+        <button class="btn-back" onclick="nav('games')">НАЗАД</button>
     </div>
-    <button class="btn-back" onclick="nav('games')">НАЗАД</button>
-</div>
 
-<div id="tab-earn" class="section">
-    <h2 style="text-align:center; color:var(--gold)">Ежедневный кейс</h2>
-    <div class="roulette-container" id="cont-case"><div class="pointer"></div><div id="tape-case" class="tape"></div></div>
-    <button class="btn-main" onclick="startSpin('tape-case', 'cont-case', 0, gifts)">ОТКРЫТЬ</button>
-</div>
+    <div id="tab-earn" class="section">
+        <h2 style="text-align:center; color:var(--gold)">Ежедневный кейс</h2>
+        <div class="roulette-container" id="cont-case">
+            <div class="pointer"></div>
+            <div id="tape-case" class="tape"></div>
+        </div>
+        <button class="btn-main" onclick="startSpin('tape-case', 'cont-case', 0, gifts)">ОТКРЫТЬ</button>
+    </div>
 
-<div id="tab-inv" class="section">
-    <h2 style="color:var(--gold)">ИНВЕНТАРЬ</h2>
-    <div id="inv-list"></div>
-</div>
+    <div id="tab-inv" class="section">
+        <h2 style="color:var(--gold)">ИНВЕНТАРЬ</h2>
+        <div id="inv-list"></div>
+    </div>
 
-<nav class="navbar">
-    <div class="nav-btn active" onclick="nav('games')">🎮<span>Игры</span></div>
-    <div class="nav-btn" onclick="nav('earn')">🎁<span>Бонус</span></div>
-    <div class="nav-btn" onclick="nav('inv')">👤<span>Профиль</span></div>
-</nav>
+    <nav class="navbar">
+        <div class="nav-btn active" onclick="nav('games')">🎮<span>Игры</span></div>
+        <div class="nav-btn" onclick="nav('earn')">🎁<span>Бонус</span></div>
+        <div class="nav-btn" onclick="nav('inv')">👤<span>Профиль</span></div>
+    </nav>
 
-<script>
-    const gifts = [
-        {name: 'UFC STRIKE', img: 'UFC.png', price: 1450},
-        {name: 'Chill Flame', img: 'Chill.png', price: 450},
-        {name: 'Low Rider', img: 'Low.png', price: 4000},
-        {name: 'Lunar Snake', img: 'Snake.png', price: 300},
-        {name: 'Eternal Rose', img: 'Rose.png', price: 2300},
-        {name: 'Diamond Ring', img: 'Ring.png', price: 2500},
-        {name: 'Toy Bear', img: 'Bear.png', price: 3100},
-        {name: 'Westside Sign', img: 'Sign.png', price: 8000},
-        {name: '150 Stars', img: '⭐', val: 150, price: 150}
-    ];
+    <script>
+        /* МАССИВЫ ДАННЫХ */
+        const gifts = [
+            { name: 'UFC STRIKE', img: 'UFC.png', price: 1450 },
+            { name: 'Chill Flame', img: 'Chill.png', price: 450 },
+            { name: 'Low Rider', img: 'Low.png', price: 4000 },
+            { name: 'Lunar Snake', img: 'Snake.png', price: 300 },
+            { name: 'Eternal Rose', img: 'Rose.png', price: 2300 },
+            { name: 'Diamond Ring', img: 'Ring.png', price: 2500 },
+            { name: 'Toy Bear', img: 'Bear.png', price: 3100 },
+            { name: 'Westside Sign', img: 'Sign.png', price: 8000 },
+            { name: '150 Stars', img: '⭐', val: 150, price: 150 }
+        ];
 
-    const nftGifts = [
-        {name: '', img: 'nft1.png', price: 50000, isNft: true},
-        {name: '', img: 'nft2.png', price: 50000, isNft: true},
-        {name: '', img: 'nft3.png', price: 50000, isNft: true},
-        {name: '', img: 'nft4.png', price: 50000, isNft: true},
-        {name: '', img: 'nft5.png', price: 1000, isNft: true},
-        {name: '', img: 'nft6.png', price: 1000, isNft: true},
-        {name: '', img: 'nft7.png', price: 1000, isNft: true},
-        {name: '', img: 'nft8.png', price: 1000, isNft: true},
-        {name: '', img: 'nft9.png', price: 1000, isNft: true},
-        {name: '', img: 'nft10.png', price: 1000, isNft: true},
-        {name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true},
-        {name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true},
-        {name: '50 Stars', img: '⭐', val: 50, price: 50},
-        {name: '50 Stars', img: '⭐', val: 50, price: 50},
-        {name: '100 Stars', img: '⭐', val: 100, price: 100},
-        {name: '100 Stars', img: '⭐', val: 100, price: 100},
-        {name: '150 Stars', img: '⭐', val: 150, price: 150}
-    ];
+        const nftGifts = [
+            { name: '', img: 'nft1.png', price: 50000, isNft: true },
+            { name: '', img: 'nft2.png', price: 50000, isNft: true },
+            { name: '', img: 'nft3.png', price: 50000, isNft: true },
+            { name: '', img: 'nft4.png', price: 50000, isNft: true },
+            { name: '', img: 'nft5.png', price: 1000, isNft: true },
+            { name: '', img: 'nft6.png', price: 1000, isNft: true },
+            { name: '', img: 'nft7.png', price: 1000, isNft: true },
+            { name: '', img: 'nft8.png', price: 1000, isNft: true },
+            { name: '', img: 'nft9.png', price: 1000, isNft: true },
+            { name: '', img: 'nft10.png', price: 1000, isNft: true },
+            { name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true },
+            { name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true },
+            { name: '50 Stars', img: '⭐', val: 50, price: 50 },
+            { name: '50 Stars', img: '⭐', val: 50, price: 50 },
+            { name: '100 Stars', img: '⭐', val: 100, price: 100 },
+            { name: '100 Stars', img: '⭐', val: 100, price: 100 },
+            { name: '150 Stars', img: '⭐', val: 150, price: 150 }
+        ];
 
-    let balance = parseInt(localStorage.getItem('user_bal')) || 5000;
-    let inventory = JSON.parse(localStorage.getItem('user_inv')) || [];
-    let hist = [1.05, 2.50, 1.12, 10.40];
-    let isBusy = false;
-    let currentPrize = null;
-    let crashTimer, crashVal, crashLimit, currentBet, crashActive = false, hasBet = false;
+        /* СОСТОЯНИЕ */
+        let balance = parseInt(localStorage.getItem('user_bal')) || 5000;
+        let inventory = JSON.parse(localStorage.getItem('user_inv')) || [];
+        let hist = [1.05, 2.50, 1.12, 10.40];
+        let isBusy = false;
+        let currentPrize = null;
+        let lastTapeId = null; // Для авто-заполнения после выигрыша
 
-    function sync() {
-        localStorage.setItem('user_bal', balance);
-        localStorage.setItem('user_inv', JSON.stringify(inventory));
-        document.getElementById('balance-val').innerText = balance.toLocaleString();
-    }
+        let crashTimer, crashVal, crashLimit, currentBet, crashActive = false, hasBet = false;
 
-    function nav(id) {
-        if(isBusy) return;
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        let targetId = ['crash', 'roulette', 'frogs', 'nft'].includes(id) ? 'game-' + id : 'tab-' + id;
-        document.getElementById(targetId).classList.add('active');
-        if(id === 'inv') renderInv();
-        if(id === 'crash') renderCrashHist();
-        
-        // --- ДОБАВЛЕНО: Заполнять ленты при переключении на игру ---
-        if(id === 'roulette') preFillTape('tape-roulette', gifts);
-        if(id === 'nft') preFillTape('tape-nft', nftGifts);
-        if(id === 'earn') preFillTape('tape-case', gifts);
-    }
-
-    function initLiveFeed() {
-        const feed = document.getElementById('live-feed');
-        const names = ['Ivan', 'Dmitry', 'Masha', 'Alex', 'Sasha', 'Kira', 'Nikita'];
-        setInterval(() => {
-            const pool = Math.random() > 0.3 ? gifts : nftGifts;
-            const item = pool[Math.floor(Math.random() * pool.length)];
-            if(item.isEmpty) return;
-            const name = names[Math.floor(Math.random() * names.length)];
-            const icon = item.img === '⭐' ? '⭐' : `<img src="img/${item.img}">`;
-            feed.style.opacity = 0;
-            setTimeout(() => {
-                feed.innerHTML = `⚡ ${name}: ${icon}`;
-                feed.style.opacity = 1;
-            }, 500);
-        }, 4000);
-    }
-
-    // --- НОВАЯ ФУНКЦИЯ: Предварительное заполнение ленты ---
-    function preFillTape(tapeId, pool) {
-        const tape = document.getElementById(tapeId);
-        // Если лента уже заполнена, не тратим ресурсы
-        if (tape.children.length > 0) return; 
-
-        tape.style.transition = 'none';
-        tape.style.transform = 'translateX(0)';
-        tape.innerHTML = '';
-        
-        // Заполняем 20 элементами (этого хватит, чтобы перекрыть видимую область)
-        for(let i=0; i<20; i++) {
-            const g = pool[Math.floor(Math.random()*pool.length)];
-            const el = document.createElement('div');
-            el.className = g.isNft ? 'tape-item nft-style' : 'tape-item';
-            if(g.isEmpty) el.innerHTML = `<div style="font-size:40px; opacity:0.2;">💨</div>`;
-            else if(g.img === '⭐') el.innerHTML = `<div style="font-size:50px; width:100%; text-align:center; margin-bottom:40px;">⭐</div>`;
-            else el.style.backgroundImage = `url('img/${g.img}')`;
-            el.innerHTML += `<div class="label">${g.name}</div>`;
-            tape.appendChild(el);
+        function sync() {
+            localStorage.setItem('user_bal', balance);
+            localStorage.setItem('user_inv', JSON.stringify(inventory));
+            document.getElementById('balance-val').innerText = balance.toLocaleString();
         }
-    }
 
-    function startSpin(tapeId, contId, cost, pool) {
-        if(isBusy || balance < cost) return;
-        isBusy = true; balance -= cost; sync();
-        const tape = document.getElementById(tapeId);
-        const cont = document.getElementById(contId);
-        
-        // Важно: В момент старта сбрасываем позицию и очищаем, чтобы сгенерировать длинную ленту для прокрутки
-        tape.style.transition = 'none'; tape.style.transform = 'translateX(0)';
-        tape.innerHTML = '';
-        
-        const winIdx = 35; 
-        const itemWidth = 130 + 10; // ширина + margin
-        for(let i=0; i<45; i++) {
-            const g = pool[Math.floor(Math.random()*pool.length)];
-            const el = document.createElement('div');
-            el.className = g.isNft ? 'tape-item nft-style' : 'tape-item';
-            if(g.isEmpty) el.innerHTML = `<div style="font-size:40px; opacity:0.2;">💨</div>`;
-            else if(g.img === '⭐') el.innerHTML = `<div style="font-size:50px; width:100%; text-align:center; margin-bottom:40px;">⭐</div>`;
-            else el.style.backgroundImage = `url('img/${g.img}')`;
-            el.innerHTML += `<div class="label">${g.name}</div>`;
-            tape.appendChild(el);
-            if(i === winIdx) currentPrize = g;
+        /* НАВИГАЦИЯ */
+        function nav(id) {
+            if (isBusy) return;
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            let targetId = ['crash', 'roulette', 'frogs', 'nft'].includes(id) ? 'game-' + id : 'tab-' + id;
+            document.getElementById(targetId).classList.add('active');
+
+            if (id === 'inv') renderInv();
+            if (id === 'crash') renderCrashHist();
+
+            // Предварительное заполнение лент при входе в игру
+            if (id === 'roulette') preFillTape('tape-roulette', gifts);
+            if (id === 'nft') preFillTape('tape-nft', nftGifts);
+            if (id === 'earn') preFillTape('tape-case', gifts);
         }
-        setTimeout(() => {
-            const finalPos = (winIdx * itemWidth) + (itemWidth / 2) - (cont.offsetWidth / 2);
-            tape.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.1, 1)';
-            tape.style.transform = `translateX(-${finalPos}px)`;
-        }, 50);
-        setTimeout(() => { showWin(currentPrize); }, 5500);
-    }
 
-    function showWin(prize) {
-        const header = document.getElementById('win-header');
-        if(prize.isEmpty) {
-            header.innerText = "НИЧЕГО...";
-            document.getElementById('win-content').innerHTML = `Увы, этот слот пустой!`;
-        } else {
-            header.innerText = "ВЫ ВЫИГРАЛИ";
-            const icon = prize.img === '⭐' ? '⭐' : `<img src="img/${prize.img}" style="width:${prize.isNft ? '100%' : '100px'}; border-radius:15px; margin-bottom:10px;">`;
-            document.getElementById('win-content').innerHTML = `${icon}<br>${prize.name}`;
-        }
-        document.getElementById('win-modal').style.display = 'flex';
-        
-        // --- ДОБАВЛЕНО: После закрытия окна выигрыша, лента снова станет пустой. ---
-        // Это заставит nav() вызвать preFillTape заново, когда игрок вернется.
-        // Или можно просто сразу вызвать preFillTape здесь для текущей ленты.
-    }
-
-    function claimReward() {
-        if(currentPrize && !currentPrize.isEmpty) {
-            if(currentPrize.val) balance += currentPrize.val; 
-            else inventory.push(currentPrize);
-        }
-        document.getElementById('win-modal').style.display = 'none';
-        document.querySelectorAll('.frog-box').forEach(b => { 
-            b.classList.remove('open', 'reveal'); b.classList.add('pulse'); b.innerHTML = "📦"; 
-        });
-        isBusy = false; sync();
-        
-        // Очищаем ленту текущей активной игры, чтобы при следующем входе она заполнилась заново статикой
-        const activeSection = document.querySelector('.section.active');
-        const tape = activeSection.querySelector('.tape');
-        if (tape) tape.innerHTML = ''; 
-    }
-
-    function crashAction() { if (hasBet) cashOut(); else if (!crashActive) startCrash(); }
-    function startCrash() {
-        currentBet = parseInt(document.getElementById('bet-input').value);
-        if (!currentBet || currentBet > balance || currentBet <= 0) return;
-        balance -= currentBet; sync();
-        crashActive = true; hasBet = true; crashVal = 1.0;
-        crashLimit = Math.random() < 0.15 ? 1.05 : (Math.random() * 5 + 1.1);
-        const btn = document.getElementById('crash-btn');
-        btn.innerText = "ЗАБРАТЬ"; btn.classList.add('btn-stop');
-        crashTimer = setInterval(() => {
-            crashVal += 0.01;
-            document.getElementById('mult').innerText = crashVal.toFixed(2) + "x";
-            if (crashVal >= crashLimit) explode();
-        }, 50);
-    }
-    function cashOut() {
-        clearInterval(crashTimer); // Сразу чистим интервал
-        hasBet = false; // Сразу сбрасываем флаг ставки
-        balance += Math.floor(currentBet * crashVal); sync();
-        const btn = document.getElementById('crash-btn');
-        btn.innerText = "ОЖИДАНИЕ..."; btn.disabled = true; btn.classList.remove('btn-stop');
-    }
-    function explode() {
-        clearInterval(crashTimer); crashActive = false; hasBet = false;
-        const multDisplay = document.getElementById('mult');
-        multDisplay.innerText = "BOOM! " + crashVal.toFixed(2) + "x";
-        multDisplay.style.color = "#ff4757";
-        hist.unshift(crashVal); if (hist.length > 8) hist.pop();
-        setTimeout(() => {
-            multDisplay.innerText = "1.00x"; multDisplay.style.color = "var(--gold)";
-            const btn = document.getElementById('crash-btn');
-            btn.innerText = "ПОСТАВИТЬ"; btn.disabled = false; btn.classList.remove('btn-stop');
-            renderCrashHist();
-        }, 2000);
-    }
-    function renderCrashHist() { document.getElementById('crash-history-bar').innerHTML = hist.map(x => `<div class="hist-x" style="color:${x>2?'var(--gold)':'#888'}">${x.toFixed(2)}x</div>`).join(''); }
-
-    function playFrogs(idx) {
-        if(isBusy || balance < 300) return;
-        isBusy = true; balance -= 300; sync();
-        const boxes = document.querySelectorAll('.frog-box');
-        const getPrize = () => {
-            if(Math.random() > 0.2) return gifts.find(g => g.img === '⭐');
-            return gifts.filter(g => g.img !== '⭐')[Math.floor(Math.random() * (gifts.length-1))];
-        };
-        const results = [getPrize(), getPrize(), getPrize()];
-        currentPrize = results[idx];
-        boxes.forEach((box, i) => {
-            box.classList.remove('pulse');
-            const p = results[i];
-            const content = p.img === '⭐' ? '⭐' : `<img src="img/${p.img}" style="width:60px">`;
-            if(i === idx) {
-                box.classList.add('open');
-                box.innerHTML = content;
-            } else {
+        /* LIVE FEED */
+        function initLiveFeed() {
+            const feed = document.getElementById('live-feed');
+            const names = ['Ivan', 'Dmitry', 'Masha', 'Alex', 'Sasha', 'Kira', 'Nikita'];
+            setInterval(() => {
+                const pool = Math.random() > 0.3 ? gifts : nftGifts;
+                const item = pool[Math.floor(Math.random() * pool.length)];
+                if (item.isEmpty) return;
+                const name = names[Math.floor(Math.random() * names.length)];
+                const icon = item.img === '⭐' ? '⭐' : `<img src="img/${item.img}">`;
+                feed.style.opacity = 0;
                 setTimeout(() => {
-                    box.classList.add('reveal');
-                    box.innerHTML = content;
+                    feed.innerHTML = `⚡ ${name}: ${icon}`;
+                    feed.style.opacity = 1;
                 }, 500);
+            }, 4000);
+        }
+
+        /* ЛОГИКА РУЛЕТКИ */
+        function preFillTape(tapeId, pool) {
+            const tape = document.getElementById(tapeId);
+            tape.style.transition = 'none';
+            tape.style.transform = 'translateX(0)';
+            tape.innerHTML = '';
+
+            // Заполняем область видимости (ок. 20 элементов)
+            for (let i = 0; i < 20; i++) {
+                const g = pool[Math.floor(Math.random() * pool.length)];
+                const el = document.createElement('div');
+                el.className = g.isNft ? 'tape-item nft-style' : 'tape-item';
+                if (g.isEmpty) el.innerHTML = `<div style="font-size:40px; opacity:0.2;">💨</div>`;
+                else if (g.img === '⭐') el.innerHTML = `<div style="font-size:50px; width:100%; text-align:center; margin-bottom:40px;">⭐</div>`;
+                else el.style.backgroundImage = `url('img/${g.img}')`;
+                el.innerHTML += `<div class="label">${g.name}</div>`;
+                tape.appendChild(el);
             }
-        });
-        setTimeout(() => showWin(currentPrize), 1200);
-    }
+        }
 
-    function renderInv() {
-        const list = document.getElementById('inv-list');
-        list.innerHTML = inventory.length ? '' : '<p style="grid-column:1/3; opacity:0.3; text-align:center">Пусто</p>';
-        inventory.forEach((it, i) => {
-            list.innerHTML += `<div class="inv-item" style="${it.isNft ? 'border-color:#a445b2' : ''}"><img src="img/${it.img}" style="width:50px; border-radius:8px;"><br><small>${it.name}</small><br><button onclick="sell(${i})" style="background:var(--gold); border:none; border-radius:8px; margin-top:8px; font-weight:900; padding:5px 10px;">ПРОДАТЬ</button></div>`;
-        });
-    }
-    function sell(i) { balance += Math.floor(inventory[i].price * 0.8); inventory.splice(i, 1); sync(); renderInv(); }
+        function startSpin(tapeId, contId, cost, pool) {
+            if (isBusy || balance < cost) return;
+            isBusy = true; balance -= cost; sync();
+            lastTapeId = tapeId; // Запоминаем ленту
 
-    sync();
-    initLiveFeed();
-</script>
+            const tape = document.getElementById(tapeId);
+            const cont = document.getElementById(contId);
+
+            tape.style.transition = 'none';
+            tape.style.transform = 'translateX(0)';
+            tape.innerHTML = '';
+
+            const winIdx = 35;
+            const itemWidth = 130 + 10; // ширина + margin
+
+            for (let i = 0; i < 45; i++) {
+                const g = pool[Math.floor(Math.random() * pool.length)];
+                const el = document.createElement('div');
+                el.className = g.isNft ? 'tape-item nft-style' : 'tape-item';
+                if (g.isEmpty) el.innerHTML = `<div style="font-size:40px; opacity:0.2;">💨</div>`;
+                else if (g.img === '⭐') el.innerHTML = `<div style="font-size:50px; width:100%; text-align:center; margin-bottom:40px;">⭐</div>`;
+                else el.style.backgroundImage = `url('img/${g.img}')`;
+                el.innerHTML += `<div class="label">${g.name}</div>`;
+                tape.appendChild(el);
+                if (i === winIdx) currentPrize = g;
+            }
+
+            setTimeout(() => {
+                const finalPos = (winIdx * itemWidth) + (itemWidth / 2) - (cont.offsetWidth / 2);
+                tape.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.1, 1)';
+                tape.style.transform = `translateX(-${finalPos}px)`;
+            }, 50);
+
+            setTimeout(() => { showWin(currentPrize); }, 5500);
+        }
+
+        function showWin(prize) {
+            const header = document.getElementById('win-header');
+            if (prize.isEmpty) {
+                header.innerText = "НИЧЕГО...";
+                document.getElementById('win-content').innerHTML = `Увы, этот слот пустой!`;
+            } else {
+                header.innerText = "ВЫ ВЫИГРАЛИ";
+                const icon = prize.img === '⭐' ? '⭐' : `<img src="img/${prize.img}" style="width:${prize.isNft ? '100%' : '100px'}; border-radius:15px; margin-bottom:10px;">`;
+                document.getElementById('win-content').innerHTML = `${icon}<br>${prize.name}`;
+            }
+            document.getElementById('win-modal').style.display = 'flex';
+        }
+
+        function claimReward() {
+            if (currentPrize && !currentPrize.isEmpty) {
+                if (currentPrize.val) balance += currentPrize.val;
+                else inventory.push(currentPrize);
+            }
+            document.getElementById('win-modal').style.display = 'none';
+            document.querySelectorAll('.frog-box').forEach(b => {
+                b.classList.remove('open', 'reveal'); b.classList.add('pulse'); b.innerHTML = "📦";
+            });
+
+            // ИСПРАВЛЕНИЕ: Перезаполняем ленту после закрытия модалки
+            if (lastTapeId) {
+                const pool = (lastTapeId === 'tape-nft') ? nftGifts : gifts;
+                preFillTape(lastTapeId, pool);
+            }
+
+            isBusy = false; sync();
+        }
+
+        /* CRASH LOGIC */
+        function crashAction() { if (hasBet) cashOut(); else if (!crashActive) startCrash(); }
+
+        function startCrash() {
+            currentBet = parseInt(document.getElementById('bet-input').value);
+            if (!currentBet || currentBet > balance || currentBet <= 0) return;
+            balance -= currentBet; sync();
+            crashActive = true; hasBet = true; crashVal = 1.0;
+            crashLimit = Math.random() < 0.15 ? 1.05 : (Math.random() * 5 + 1.1);
+            const btn = document.getElementById('crash-btn');
+            btn.innerText = "ЗАБРАТЬ"; btn.classList.add('btn-stop');
+            crashTimer = setInterval(() => {
+                crashVal += 0.01;
+                document.getElementById('mult').innerText = crashVal.toFixed(2) + "x";
+                if (crashVal >= crashLimit) explode();
+            }, 50);
+        }
+
+        function cashOut() {
+            clearInterval(crashTimer);
+            hasBet = false;
+            balance += Math.floor(currentBet * crashVal); sync();
+            const btn = document.getElementById('crash-btn');
+            btn.innerText = "ОЖИДАНИЕ..."; btn.disabled = true; btn.classList.remove('btn-stop');
+        }
+
+        function explode() {
+            clearInterval(crashTimer); crashActive = false; hasBet = false;
+            const multDisplay = document.getElementById('mult');
+            multDisplay.innerText = "BOOM! " + crashVal.toFixed(2) + "x";
+            multDisplay.style.color = "#ff4757";
+            hist.unshift(crashVal); if (hist.length > 8) hist.pop();
+            setTimeout(() => {
+                multDisplay.innerText = "1.00x"; multDisplay.style.color = "var(--gold)";
+                const btn = document.getElementById('crash-btn');
+                btn.innerText = "ПОСТАВИТЬ"; btn.disabled = false; btn.classList.remove('btn-stop');
+                renderCrashHist();
+            }, 2000);
+        }
+
+        function renderCrashHist() {
+            document.getElementById('crash-history-bar').innerHTML = hist.map(x => `<div class="hist-x" style="color:${x > 2 ? 'var(--gold)' : '#888'}">${x.toFixed(2)}x</div>`).join('');
+        }
+
+        /* FROGS LOGIC */
+        function playFrogs(idx) {
+            if (isBusy || balance < 300) return;
+            isBusy = true; balance -= 300; sync();
+            const boxes = document.querySelectorAll('.frog-box');
+            const getPrize = () => {
+                if (Math.random() > 0.2) return gifts.find(g => g.img === '⭐');
+                return gifts.filter(g => g.img !== '⭐')[Math.floor(Math.random() * (gifts.length - 1))];
+            };
+            const results = [getPrize(), getPrize(), getPrize()];
+            currentPrize = results[idx];
+            boxes.forEach((box, i) => {
+                box.classList.remove('pulse');
+                const p = results[i];
+                const content = p.img === '⭐' ? '⭐' : `<img src="img/${p.img}" style="width:60px">`;
+                if (i === idx) {
+                    box.classList.add('open');
+                    box.innerHTML = content;
+                } else {
+                    setTimeout(() => {
+                        box.classList.add('reveal');
+                        box.innerHTML = content;
+                    }, 500);
+                }
+            });
+            setTimeout(() => showWin(currentPrize), 1200);
+        }
+
+        /* INVENTORY */
+        function renderInv() {
+            const list = document.getElementById('inv-list');
+            list.innerHTML = inventory.length ? '' : '<p style="grid-column:1/3; opacity:0.3; text-align:center">Пусто</p>';
+            inventory.forEach((it, i) => {
+                list.innerHTML += `<div class="inv-item" style="${it.isNft ? 'border-color:#a445b2' : ''}"><img src="img/${it.img}" style="width:50px; border-radius:8px;"><br><small>${it.name}</small><br><button onclick="sell(${i})" style="background:var(--gold); border:none; border-radius:8px; margin-top:8px; font-weight:900; padding:5px 10px;">ПРОДАТЬ</button></div>`;
+            });
+        }
+
+        function sell(i) {
+            balance += Math.floor(inventory[i].price * 0.8);
+            inventory.splice(i, 1);
+            sync(); renderInv();
+        }
+
+        // ИНИЦИАЛИЗАЦИЯ
+        sync();
+        initLiveFeed();
+    </script>
 </body>
+
 </html>
