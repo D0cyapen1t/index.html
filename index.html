@@ -40,24 +40,30 @@
         }
 
         .live-feed {
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 700;
             display: flex;
             align-items: center;
             gap: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 5px 12px;
+            background: rgba(255, 255, 255, 0.07);
+            padding: 6px 14px;
             border-radius: 20px;
             border: 1px solid var(--glass-border);
-            min-width: 150px;
-            transition: 0.3s;
-            height: 35px;
+            min-width: 140px;
+            transition: all 0.4s ease;
+            height: 38px;
             overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
+        .live-feed b { color: var(--gold); margin-right: 4px; }
+
         .live-feed img {
-            height: 20px;
-            border-radius: 4px;
+            height: 22px;
+            width: 22px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .balance-pill {
@@ -87,15 +93,8 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(5px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* CARDS */
@@ -129,11 +128,7 @@
             align-items: center;
         }
 
-        .tape {
-            display: flex;
-            will-change: transform;
-            align-items: center;
-        }
+        .tape { display: flex; will-change: transform; align-items: center; }
 
         .tape-item {
             min-width: var(--item-w);
@@ -159,9 +154,7 @@
             border: 1px solid rgba(164, 69, 178, 0.4);
         }
 
-        .nft-style .label {
-            display: none !important;
-        }
+        .nft-style .label { display: none !important; }
 
         .tape-item .label {
             width: 100%;
@@ -310,7 +303,7 @@
 <body>
 
     <div class="header">
-        <div class="live-feed" id="live-feed">⚡ Загрузка...</div>
+        <div class="live-feed" id="live-feed">⚡ Ждем выигрышей...</div>
         <div class="balance-pill">⭐ <span id="balance-val">0</span></div>
     </div>
 
@@ -401,7 +394,7 @@
     </nav>
 
     <script>
-        /* МАССИВЫ ДАННЫХ */
+        /* МАССИВЫ ДАННЫХ - ШАНСЫ НА ПУСТОТУ И ЗВЕЗДЫ УВЕЛИЧЕНЫ */
         const gifts = [
             { name: 'UFC STRIKE', img: 'UFC.png', price: 1450 },
             { name: 'Chill Flame', img: 'Chill.png', price: 450 },
@@ -411,6 +404,13 @@
             { name: 'Diamond Ring', img: 'Ring.png', price: 2500 },
             { name: 'Toy Bear', img: 'Bear.png', price: 3100 },
             { name: 'Westside Sign', img: 'Sign.png', price: 8000 },
+            // Добавляем больше дешевых/пустых позиций для баланса
+            { name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true },
+            { name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true },
+            { name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true },
+            { name: '25 Stars', img: '⭐', val: 25, price: 25 },
+            { name: '50 Stars', img: '⭐', val: 50, price: 50 },
+            { name: '100 Stars', img: '⭐', val: 100, price: 100 },
             { name: '150 Stars', img: '⭐', val: 150, price: 150 }
         ];
 
@@ -425,13 +425,17 @@
             { name: '', img: 'nft8.png', price: 1000, isNft: true },
             { name: '', img: 'nft9.png', price: 1000, isNft: true },
             { name: '', img: 'nft10.png', price: 1000, isNft: true },
+            // Увеличиваем шанс "проигрыша" в дорогом кейсе
+            { name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true },
+            { name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true },
             { name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true },
             { name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true },
             { name: '50 Stars', img: '⭐', val: 50, price: 50 },
             { name: '50 Stars', img: '⭐', val: 50, price: 50 },
             { name: '100 Stars', img: '⭐', val: 100, price: 100 },
             { name: '100 Stars', img: '⭐', val: 100, price: 100 },
-            { name: '150 Stars', img: '⭐', val: 150, price: 150 }
+            { name: '150 Stars', img: '⭐', val: 150, price: 150 },
+            { name: '500 Stars', img: '⭐', val: 500, price: 500 }
         ];
 
         /* СОСТОЯНИЕ */
@@ -440,7 +444,7 @@
         let hist = [1.05, 2.50, 1.12, 10.40];
         let isBusy = false;
         let currentPrize = null;
-        let lastTapeId = null; // Для авто-заполнения после выигрыша
+        let lastTapeId = null;
 
         let crashTimer, crashVal, crashLimit, currentBet, crashActive = false, hasBet = false;
 
@@ -454,34 +458,46 @@
         function nav(id) {
             if (isBusy) return;
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
             let targetId = ['crash', 'roulette', 'frogs', 'nft'].includes(id) ? 'game-' + id : 'tab-' + id;
             document.getElementById(targetId).classList.add('active');
+            
+            // Подсветка кнопки в навбаре
+            if(id === 'games') document.querySelector('.nav-btn:nth-child(1)').classList.add('active');
+            if(id === 'earn') document.querySelector('.nav-btn:nth-child(2)').classList.add('active');
+            if(id === 'inv') document.querySelector('.nav-btn:nth-child(3)').classList.add('active');
 
             if (id === 'inv') renderInv();
             if (id === 'crash') renderCrashHist();
 
-            // Предварительное заполнение лент при входе в игру
             if (id === 'roulette') preFillTape('tape-roulette', gifts);
             if (id === 'nft') preFillTape('tape-nft', nftGifts);
             if (id === 'earn') preFillTape('tape-case', gifts);
         }
 
-        /* LIVE FEED */
+        /* LIVE FEED - БЕЗ ИМЕН */
         function initLiveFeed() {
             const feed = document.getElementById('live-feed');
-            const names = ['Ivan', 'Dmitry', 'Masha', 'Alex', 'Sasha', 'Kira', 'Nikita'];
             setInterval(() => {
-                const pool = Math.random() > 0.3 ? gifts : nftGifts;
+                const isNftPool = Math.random() > 0.6;
+                const pool = isNftPool ? nftGifts : gifts;
                 const item = pool[Math.floor(Math.random() * pool.length)];
+                
                 if (item.isEmpty) return;
-                const name = names[Math.floor(Math.random() * names.length)];
+
+                const text = item.isNft ? "Выбил NFT" : (item.img === '⭐' ? "Выбил Stars" : "Выбил Gift");
                 const icon = item.img === '⭐' ? '⭐' : `<img src="img/${item.img}">`;
+                
+                feed.style.transform = 'translateY(-20px)';
                 feed.style.opacity = 0;
+                
                 setTimeout(() => {
-                    feed.innerHTML = `⚡ ${name}: ${icon}`;
+                    feed.innerHTML = `<b>${text}</b> ${icon}`;
+                    feed.style.transform = 'translateY(0)';
                     feed.style.opacity = 1;
-                }, 500);
-            }, 4000);
+                }, 400);
+            }, 3500);
         }
 
         /* ЛОГИКА РУЛЕТКИ */
@@ -491,12 +507,11 @@
             tape.style.transform = 'translateX(0)';
             tape.innerHTML = '';
 
-            // Заполняем область видимости (ок. 20 элементов)
             for (let i = 0; i < 20; i++) {
                 const g = pool[Math.floor(Math.random() * pool.length)];
                 const el = document.createElement('div');
                 el.className = g.isNft ? 'tape-item nft-style' : 'tape-item';
-                if (g.isEmpty) el.innerHTML = `<div style="font-size:40px; opacity:0.2;">💨</div>`;
+                if (g.isEmpty) el.innerHTML = `<div style="font-size:40px; opacity:0.1;">💨</div>`;
                 else if (g.img === '⭐') el.innerHTML = `<div style="font-size:50px; width:100%; text-align:center; margin-bottom:40px;">⭐</div>`;
                 else el.style.backgroundImage = `url('img/${g.img}')`;
                 el.innerHTML += `<div class="label">${g.name}</div>`;
@@ -507,7 +522,7 @@
         function startSpin(tapeId, contId, cost, pool) {
             if (isBusy || balance < cost) return;
             isBusy = true; balance -= cost; sync();
-            lastTapeId = tapeId; // Запоминаем ленту
+            lastTapeId = tapeId;
 
             const tape = document.getElementById(tapeId);
             const cont = document.getElementById(contId);
@@ -517,13 +532,13 @@
             tape.innerHTML = '';
 
             const winIdx = 35;
-            const itemWidth = 130 + 10; // ширина + margin
+            const itemWidth = 130 + 10;
 
             for (let i = 0; i < 45; i++) {
                 const g = pool[Math.floor(Math.random() * pool.length)];
                 const el = document.createElement('div');
                 el.className = g.isNft ? 'tape-item nft-style' : 'tape-item';
-                if (g.isEmpty) el.innerHTML = `<div style="font-size:40px; opacity:0.2;">💨</div>`;
+                if (g.isEmpty) el.innerHTML = `<div style="font-size:40px; opacity:0.1;">💨</div>`;
                 else if (g.img === '⭐') el.innerHTML = `<div style="font-size:50px; width:100%; text-align:center; margin-bottom:40px;">⭐</div>`;
                 else el.style.backgroundImage = `url('img/${g.img}')`;
                 el.innerHTML += `<div class="label">${g.name}</div>`;
@@ -542,13 +557,16 @@
 
         function showWin(prize) {
             const header = document.getElementById('win-header');
+            const content = document.getElementById('win-content');
             if (prize.isEmpty) {
                 header.innerText = "НИЧЕГО...";
-                document.getElementById('win-content').innerHTML = `Увы, этот слот пустой!`;
+                header.style.color = "#888";
+                content.innerHTML = `<div style="font-size:60px">💨</div><br>Повезет в следующий раз!`;
             } else {
                 header.innerText = "ВЫ ВЫИГРАЛИ";
-                const icon = prize.img === '⭐' ? '⭐' : `<img src="img/${prize.img}" style="width:${prize.isNft ? '100%' : '100px'}; border-radius:15px; margin-bottom:10px;">`;
-                document.getElementById('win-content').innerHTML = `${icon}<br>${prize.name}`;
+                header.style.color = "var(--gold)";
+                const icon = prize.img === '⭐' ? '<div style="font-size:60px">⭐</div>' : `<img src="img/${prize.img}" style="width:${prize.isNft ? '100%' : '100px'}; border-radius:15px; margin-bottom:10px;">`;
+                content.innerHTML = `${icon}<br>${prize.name}`;
             }
             document.getElementById('win-modal').style.display = 'flex';
         }
@@ -563,7 +581,6 @@
                 b.classList.remove('open', 'reveal'); b.classList.add('pulse'); b.innerHTML = "📦";
             });
 
-            // ИСПРАВЛЕНИЕ: Перезаполняем ленту после закрытия модалки
             if (lastTapeId) {
                 const pool = (lastTapeId === 'tape-nft') ? nftGifts : gifts;
                 preFillTape(lastTapeId, pool);
@@ -572,7 +589,7 @@
             isBusy = false; sync();
         }
 
-        /* CRASH LOGIC */
+        /* CRASH LOGIC - ШАНС НА 1.00x ВЫШЕ */
         function crashAction() { if (hasBet) cashOut(); else if (!crashActive) startCrash(); }
 
         function startCrash() {
@@ -580,7 +597,10 @@
             if (!currentBet || currentBet > balance || currentBet <= 0) return;
             balance -= currentBet; sync();
             crashActive = true; hasBet = true; crashVal = 1.0;
-            crashLimit = Math.random() < 0.15 ? 1.05 : (Math.random() * 5 + 1.1);
+            
+            // Баланс: 40% шанс на моментальный краш (слив)
+            crashLimit = Math.random() < 0.40 ? 1.01 : (Math.random() * 3.5 + 1.1);
+            
             const btn = document.getElementById('crash-btn');
             btn.innerText = "ЗАБРАТЬ"; btn.classList.add('btn-stop');
             crashTimer = setInterval(() => {
@@ -616,21 +636,25 @@
             document.getElementById('crash-history-bar').innerHTML = hist.map(x => `<div class="hist-x" style="color:${x > 2 ? 'var(--gold)' : '#888'}">${x.toFixed(2)}x</div>`).join('');
         }
 
-        /* FROGS LOGIC */
+        /* FROGS LOGIC - БОЛЬШЕ ЗВЕЗД */
         function playFrogs(idx) {
             if (isBusy || balance < 300) return;
             isBusy = true; balance -= 300; sync();
             const boxes = document.querySelectorAll('.frog-box');
+            
             const getPrize = () => {
-                if (Math.random() > 0.2) return gifts.find(g => g.img === '⭐');
-                return gifts.filter(g => g.img !== '⭐')[Math.floor(Math.random() * (gifts.length - 1))];
+                const rand = Math.random();
+                if (rand > 0.4) return gifts.find(g => g.img === '⭐'); // 60% звезды
+                if (rand > 0.1) return { name: 'ПУСТО', img: 'none', val: 0, isEmpty: true }; // 30% пусто
+                return gifts.filter(g => !g.isEmpty && g.img !== '⭐')[Math.floor(Math.random() * 5)]; // 10% вещь
             };
+            
             const results = [getPrize(), getPrize(), getPrize()];
             currentPrize = results[idx];
             boxes.forEach((box, i) => {
                 box.classList.remove('pulse');
                 const p = results[i];
-                const content = p.img === '⭐' ? '⭐' : `<img src="img/${p.img}" style="width:60px">`;
+                const content = p.isEmpty ? '💨' : (p.img === '⭐' ? '⭐' : `<img src="img/${p.img}" style="width:60px">`);
                 if (i === idx) {
                     box.classList.add('open');
                     box.innerHTML = content;
@@ -647,7 +671,7 @@
         /* INVENTORY */
         function renderInv() {
             const list = document.getElementById('inv-list');
-            list.innerHTML = inventory.length ? '' : '<p style="grid-column:1/3; opacity:0.3; text-align:center">Пусто</p>';
+            list.innerHTML = inventory.length ? '' : '<p style="grid-column:1/3; opacity:0.3; text-align:center; padding: 40px 0;">У вас пока нет предметов</p>';
             inventory.forEach((it, i) => {
                 list.innerHTML += `<div class="inv-item" style="${it.isNft ? 'border-color:#a445b2' : ''}"><img src="img/${it.img}" style="width:50px; border-radius:8px;"><br><small>${it.name}</small><br><button onclick="sell(${i})" style="background:var(--gold); border:none; border-radius:8px; margin-top:8px; font-weight:900; padding:5px 10px;">ПРОДАТЬ</button></div>`;
             });
