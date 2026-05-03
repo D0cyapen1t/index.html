@@ -27,7 +27,6 @@
             height: 100vh;
         }
 
-        /* HEADER */
         .header {
             padding: 15px;
             display: flex;
@@ -77,7 +76,6 @@
             color: var(--gold);
         }
 
-        /* SECTIONS */
         .section {
             display: none;
             height: calc(100vh - 130px);
@@ -97,7 +95,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* CARDS */
         .game-card {
             border-radius: 24px;
             padding: 20px;
@@ -115,7 +112,6 @@
         .card-nft { background: linear-gradient(135deg, #a445b2, #d41872); }
         .card-frogs { background: linear-gradient(135deg, #27ae60, #6fcf97); }
 
-        /* ROULETTE STYLES */
         .roulette-container {
             height: 160px;
             background: rgba(0, 0, 0, 0.6);
@@ -181,7 +177,6 @@
             box-shadow: 0 0 20px var(--gold);
         }
 
-        /* BUTTONS */
         .btn-main {
             background: #fff;
             color: #000;
@@ -197,7 +192,6 @@
         .btn-stop { background: #ff4757 !important; color: #fff !important; }
         .btn-back { background: none; border: none; color: #555; width: 100%; padding: 15px; font-weight: 700; }
 
-        /* NAVBAR */
         .navbar {
             position: fixed;
             bottom: 0;
@@ -221,7 +215,6 @@
 
         .nav-btn.active { color: #fff; }
 
-        /* MODALS */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -251,7 +244,6 @@
             text-align: center;
         }
 
-        /* CRASH */
         #crash-history-bar {
             display: flex;
             gap: 8px;
@@ -270,7 +262,6 @@
             font-weight: 900;
         }
 
-        /* FROGS */
         .frogs-container { display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 20px; }
         .frogs-row { display: flex; gap: 20px; }
         .frog-box {
@@ -303,7 +294,7 @@
 <body>
 
     <div class="header">
-        <div class="live-feed" id="live-feed">⚡ Ждем выигрышей...</div>
+        <div class="live-feed" id="live-feed">⚡ Загрузка...</div>
         <div class="balance-pill">⭐ <span id="balance-val">0</span></div>
     </div>
 
@@ -394,7 +385,6 @@
     </nav>
 
     <script>
-        /* МАССИВЫ ДАННЫХ - ШАНСЫ НА ПУСТОТУ И ЗВЕЗДЫ УВЕЛИЧЕНЫ */
         const gifts = [
             { name: 'UFC STRIKE', img: 'UFC.png', price: 1450 },
             { name: 'Chill Flame', img: 'Chill.png', price: 450 },
@@ -409,7 +399,6 @@
             { name: 'Fresh Socks', img: 'Fresh.png', price: 500 },
             { name: 'Happy Brownies', img: 'Brown.png', price: 520 },
             { name: 'Faith Amulet', img: 'Faith.png', price: 700 },
-            // Добавляем больше дешевых/пустых позиций для баланса
             { name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true },
             { name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true },
             { name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true },
@@ -430,7 +419,6 @@
             { name: '', img: 'nft8.png', price: 1000, isNft: true },
             { name: '', img: 'nft9.png', price: 1000, isNft: true },
             { name: '', img: 'nft10.png', price: 1000, isNft: true },
-            // Увеличиваем шанс "проигрыша" в дорогом кейсе
             { name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true },
             { name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true },
             { name: 'ПУСТО', img: 'none', val: 0, price: 0, isEmpty: true },
@@ -443,7 +431,6 @@
             { name: '500 Stars', img: 'stars.png', val: 500, price: 500 }
         ];
 
-        /* СОСТОЯНИЕ */
         let balance = parseInt(localStorage.getItem('user_bal')) || 5000;
         let inventory = JSON.parse(localStorage.getItem('user_inv')) || [];
         let hist = [1.05, 2.50, 1.12, 10.40];
@@ -459,7 +446,6 @@
             document.getElementById('balance-val').innerText = balance.toLocaleString();
         }
 
-        /* НАВИГАЦИЯ */
         function nav(id) {
             if (isBusy) return;
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -468,7 +454,6 @@
             let targetId = ['crash', 'roulette', 'frogs', 'nft'].includes(id) ? 'game-' + id : 'tab-' + id;
             document.getElementById(targetId).classList.add('active');
             
-            // Подсветка кнопки в навбаре
             if(id === 'games') document.querySelector('.nav-btn:nth-child(1)').classList.add('active');
             if(id === 'earn') document.querySelector('.nav-btn:nth-child(2)').classList.add('active');
             if(id === 'inv') document.querySelector('.nav-btn:nth-child(3)').classList.add('active');
@@ -481,7 +466,6 @@
             if (id === 'earn') preFillTape('tape-case', gifts);
         }
 
-        /* LIVE FEED - БЕЗ ИМЕН */
         function initLiveFeed() {
             const feed = document.getElementById('live-feed');
             setInterval(() => {
@@ -491,8 +475,8 @@
                 
                 if (item.isEmpty) return;
 
-                const text = item.isNft ? "Выбил NFT" : (item.img === '⭐' ? "Выбил Stars" : "Выбил Gift");
-                const icon = item.img === '⭐' ? '⭐' : `<img src="img/${item.img}">`;
+                const text = item.isNft ? "Выбил NFT" : (item.img === 'stars.png' ? "Выбил Stars" : "Выбил Gift");
+                const icon = item.img === 'stars.png' ? '⭐' : `<img src="img/${item.img}">`;
                 
                 feed.style.transform = 'translateY(-20px)';
                 feed.style.opacity = 0;
@@ -505,7 +489,6 @@
             }, 3500);
         }
 
-        /* ЛОГИКА РУЛЕТКИ */
         function preFillTape(tapeId, pool) {
             const tape = document.getElementById(tapeId);
             tape.style.transition = 'none';
@@ -517,7 +500,7 @@
                 const el = document.createElement('div');
                 el.className = g.isNft ? 'tape-item nft-style' : 'tape-item';
                 if (g.isEmpty) el.innerHTML = `<div style="font-size:40px; opacity:0.1;">💨</div>`;
-                else if (g.img === '⭐') el.innerHTML = `<div style="font-size:50px; width:100%; text-align:center; margin-bottom:40px;">⭐</div>`;
+                else if (g.img === 'stars.png') el.innerHTML = `<div style="font-size:50px; width:100%; text-align:center; margin-bottom:40px;">⭐</div>`;
                 else el.style.backgroundImage = `url('img/${g.img}')`;
                 el.innerHTML += `<div class="label">${g.name}</div>`;
                 tape.appendChild(el);
@@ -544,7 +527,7 @@
                 const el = document.createElement('div');
                 el.className = g.isNft ? 'tape-item nft-style' : 'tape-item';
                 if (g.isEmpty) el.innerHTML = `<div style="font-size:40px; opacity:0.1;">💨</div>`;
-                else if (g.img === '⭐') el.innerHTML = `<div style="font-size:50px; width:100%; text-align:center; margin-bottom:40px;">⭐</div>`;
+                else if (g.img === 'stars.png') el.innerHTML = `<div style="font-size:50px; width:100%; text-align:center; margin-bottom:40px;">⭐</div>`;
                 else el.style.backgroundImage = `url('img/${g.img}')`;
                 el.innerHTML += `<div class="label">${g.name}</div>`;
                 tape.appendChild(el);
@@ -570,7 +553,7 @@
             } else {
                 header.innerText = "ВЫ ВЫИГРАЛИ";
                 header.style.color = "var(--gold)";
-                const icon = prize.img === '⭐' ? '<div style="font-size:60px">⭐</div>' : `<img src="img/${prize.img}" style="width:${prize.isNft ? '100%' : '100px'}; border-radius:15px; margin-bottom:10px;">`;
+                const icon = prize.img === 'stars.png' ? '<div style="font-size:60px">⭐</div>' : `<img src="img/${prize.img}" style="width:${prize.isNft ? '100%' : '100px'}; border-radius:15px; margin-bottom:10px;">`;
                 content.innerHTML = `${icon}<br>${prize.name}`;
             }
             document.getElementById('win-modal').style.display = 'flex';
@@ -594,7 +577,6 @@
             isBusy = false; sync();
         }
 
-        /* CRASH LOGIC - ШАНС НА 1.00x ВЫШЕ */
         function crashAction() { if (hasBet) cashOut(); else if (!crashActive) startCrash(); }
 
         function startCrash() {
@@ -603,7 +585,6 @@
             balance -= currentBet; sync();
             crashActive = true; hasBet = true; crashVal = 1.0;
             
-            // Баланс: 40% шанс на моментальный краш (слив)
             crashLimit = Math.random() < 0.40 ? 1.01 : (Math.random() * 3.5 + 1.1);
             
             const btn = document.getElementById('crash-btn');
@@ -641,7 +622,6 @@
             document.getElementById('crash-history-bar').innerHTML = hist.map(x => `<div class="hist-x" style="color:${x > 2 ? 'var(--gold)' : '#888'}">${x.toFixed(2)}x</div>`).join('');
         }
 
-        /* FROGS LOGIC - БОЛЬШЕ ЗВЕЗД */
         function playFrogs(idx) {
             if (isBusy || balance < 300) return;
             isBusy = true; balance -= 300; sync();
@@ -649,9 +629,9 @@
             
             const getPrize = () => {
                 const rand = Math.random();
-                if (rand > 0.4) return gifts.find(g => g.img === '⭐'); // 60% звезды
-                if (rand > 0.1) return { name: 'ПУСТО', img: 'none', val: 0, isEmpty: true }; // 30% пусто
-                return gifts.filter(g => !g.isEmpty && g.img !== '⭐')[Math.floor(Math.random() * 5)]; // 10% вещь
+                if (rand > 0.4) return gifts.find(g => g.img === 'stars.png');
+                if (rand > 0.1) return { name: 'ПУСТО', img: 'none', val: 0, isEmpty: true };
+                return gifts.filter(g => !g.isEmpty && g.img !== 'stars.png')[Math.floor(Math.random() * 5)];
             };
             
             const results = [getPrize(), getPrize(), getPrize()];
@@ -659,7 +639,7 @@
             boxes.forEach((box, i) => {
                 box.classList.remove('pulse');
                 const p = results[i];
-                const content = p.isEmpty ? '💨' : (p.img === '⭐' ? '⭐' : `<img src="img/${p.img}" style="width:60px">`);
+                const content = p.isEmpty ? '💨' : (p.img === 'stars.png' ? '⭐' : `<img src="img/${p.img}" style="width:60px">`);
                 if (i === idx) {
                     box.classList.add('open');
                     box.innerHTML = content;
@@ -673,7 +653,6 @@
             setTimeout(() => showWin(currentPrize), 1200);
         }
 
-        /* INVENTORY */
         function renderInv() {
             const list = document.getElementById('inv-list');
             list.innerHTML = inventory.length ? '' : '<p style="grid-column:1/3; opacity:0.3; text-align:center; padding: 40px 0;">У вас пока нет предметов</p>';
@@ -688,7 +667,6 @@
             sync(); renderInv();
         }
 
-        // ИНИЦИАЛИЗАЦИЯ
         sync();
         initLiveFeed();
     </script>
