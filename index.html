@@ -8,239 +8,221 @@
     <style>
         :root { 
             --gold: #f2c94c; 
-            --glass-bg: rgba(0, 0, 0, 0.8);
+            --bg: radial-gradient(circle at top, #1a1c20 0%, #000000 100%); 
+            --glass: rgba(255, 255, 255, 0.05); 
             --glass-border: rgba(255, 255, 255, 0.1);
             --red-grad: linear-gradient(135deg, #eb5757, #f2994a);
             --blue-grad: linear-gradient(135deg, #2f80ed, #56ccf2);
             --green-grad: linear-gradient(135deg, #27ae60, #6fcf97);
         }
 
-        body { 
-            background: #000; 
-            color: #fff; 
-            font-family: 'Montserrat', sans-serif; 
-            margin: 0; padding: 0; 
-            overflow: hidden; 
-            user-select: none; 
+        body { background: var(--bg); color: #fff; font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; overflow: hidden; user-select: none; height: 100vh; }
+
+        .header { padding: 15px; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 10; height: 60px; box-sizing: border-box;}
+        
+        /* LIVE FEED STYLES */
+        .live-feed { font-size: 10px; font-weight: 700; color: #fff; max-width: 65%; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--glass-border); transition: 0.3s; }
+        .live-icon { width: 18px; height: 18px; border-radius: 4px; object-fit: cover; }
+
+        .balance-pill { 
+            background: var(--glass); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); 
+            padding: 8px 15px; border-radius: 12px; font-size: 14px; font-weight: 900; color: var(--gold);
         }
 
-        /* Общий матовый фон */
-        .app-container {
-            background: var(--glass-bg);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .header { padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); height: 60px; box-sizing: border-box; }
-        .balance-pill { background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 12px; border: 1px solid var(--glass-border); color: var(--gold); font-weight: 900; }
-
-        .section { display: none; flex: 1; padding: 15px; overflow-y: auto; padding-bottom: 100px; box-sizing: border-box; }
-        .active { display: block; animation: fadeIn 0.3s ease; }
+        .section { display: none; height: calc(100vh - 130px); padding: 15px; box-sizing: border-box; overflow-y: auto; padding-bottom: 80px; }
+        .active { display: flex; flex-direction: column; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Специальный фон для Рулетки */
-        #game-roulette {
-            background: url('https://img.freepik.com/free-photo/abstract-luxury-gradient-blue-background-smooth-dark-blue-with-black-vignette-studio-banner_1258-63461.jpg');
-            background-size: cover;
-            background-position: center;
-        }
-
-        .daily-box {
-            background: linear-gradient(135deg, rgba(242, 201, 76, 0.15), transparent);
-            border: 1px solid var(--gold);
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .game-card { border-radius: 24px; padding: 20px; min-height: 110px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); }
+        .game-card { border-radius: 24px; padding: 20px; min-height: 110px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; cursor: pointer; transition: 0.1s; border: 1px solid rgba(255,255,255,0.05); }
+        .game-card:active { transform: scale(0.98); }
         .card-crash { background: var(--blue-grad); }
         .card-roulette { background: var(--red-grad); }
         .card-frogs { background: var(--green-grad); }
 
-        /* FROGS ANIMATION */
-        .frogs-container { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
-        .frog-box { width: 90px; height: 110px; background: rgba(255,255,255,0.05); border: 2px dashed var(--glass-border); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer; transition: 0.3s; }
-        .frog-box.shaking { animation: shake 0.5s infinite; }
-        .frog-box.open { background: rgba(242, 201, 76, 0.1); border: 2px solid var(--gold); transform: scale(1.05); }
-        
-        @keyframes shake {
-            0% { transform: rotate(0); }
-            25% { transform: rotate(5deg); }
-            75% { transform: rotate(-5deg); }
-            100% { transform: rotate(0); }
+        /* CRASH HISTORY */
+        #crash-history-bar { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding: 5px 0; scrollbar-width: none; }
+        .history-item { 
+            min-width: 55px; height: 30px; display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 8px;
+            font-size: 11px; font-weight: 900;
         }
 
-        .btn-main { background: #fff; color: #000; border: none; width: 100%; padding: 18px; border-radius: 18px; font-weight: 900; font-size: 16px; cursor: pointer; margin-top: 10px; }
-        .btn-main:disabled { background: #333; color: #666; }
-        .btn-stop { background: #ff4757 !important; color: #fff !important; }
+        /* ROULETTE TAPE */
+        #tape div { 
+            min-width: 130px; height: 130px; margin: 0 5px; border-radius: 18px; 
+            overflow: hidden; position: relative; background: #24272e;
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .tape-gift-img { width: 100%; height: 100%; object-fit: cover; }
+        .tape-gift-name { 
+            position: absolute; bottom: 0; left: 0; right: 0; 
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            padding: 6px; font-size: 10px; font-weight: 800; text-align: center;
+            color: #fff; text-transform: uppercase;
+        }
 
-        .navbar { position: fixed; bottom: 0; width: 100%; height: 70px; background: rgba(0,0,0,0.9); display: flex; border-top: 1px solid var(--glass-border); }
-        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #444; font-size: 10px; font-weight: 700; }
+        .btn-main { background: #fff; color: #000; border: none; width: 100%; padding: 18px; border-radius: 18px; font-weight: 900; font-size: 16px; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 15px rgba(255,255,255,0.1); }
+        .btn-stop { background: #ff4757 !important; color: #fff !important; }
+        .btn-back { background: none; border: none; color: #555; width: 100%; font-weight: 700; margin-top: 15px; cursor: pointer; font-size: 12px; }
+
+        .navbar { position: fixed; bottom: 0; width: 100%; height: 70px; background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(20px); display: flex; border-top: 1px solid var(--glass-border); }
+        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #444; font-size: 10px; font-weight: 700; transition: 0.3s; }
         .nav-btn.active { color: #fff; }
 
-        .modal-overlay { display: none; position: fixed; inset:0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .modal-win { background: #111; padding: 30px; border-radius: 30px; border: 1px solid var(--gold); text-align: center; width: 80%; }
+        .inv-item { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 15px; text-align: center; }
         
-        #tape div { min-width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); margin: 0 5px; border-radius: 15px; }
-        .slot-img { width: 70px; height: 70px; object-fit: contain; }
+        .modal-overlay { display: none; position: fixed; inset:0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        .modal-win { background: #16181d; padding: 35px 25px; border-radius: 35px; border: 2px solid var(--gold); text-align: center; width: 80%; }
+        
+        .frog-box { width: 90px; height: 110px; background: var(--glass); border: 2px dashed var(--glass-border); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer; }
+        .frog-box.open { background: rgba(255,255,255,0.15); border-style: solid; border-color: var(--gold); transform: scale(1.05); }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="header">
-        <div class="live-feed" id="live-feed">⚡ Загрузка...</div>
-        <div class="balance-pill">⭐ <span id="balance-val">0</span></div>
-    </div>
-
-    <!-- ГЛАВНАЯ -->
-    <div id="tab-games" class="section active">
-        <div class="daily-box">
-            <h3 style="margin:0 0 5px 0">ЕЖЕДНЕВНЫЙ КЕЙС</h3>
-            <p id="daily-timer" style="font-size: 12px; opacity:0.6; margin-bottom:10px">Шанс 10% на подарок!</p>
-            <button id="daily-btn" class="btn-main" onclick="openDaily()">ОТКРЫТЬ КЕЙС</button>
-        </div>
-
-        <div class="game-card card-crash" onclick="openGame('crash')">
-            <div><h2>Краш</h2><p>Умножай звезды</p></div><span style="font-size:50px">🚀</span>
-        </div>
-        <div class="game-card card-roulette" onclick="openGame('roulette')">
-            <div><h2>Рулетка</h2><p>NFT и Призы</p></div><span style="font-size:50px">🎡</span>
-        </div>
-        <div class="game-card card-frogs" onclick="openGame('frogs')">
-            <div><h2>Лякушки</h2><p>Найди приз</p></div><span style="font-size:50px">📦</span>
-        </div>
-    </div>
-
-    <!-- CRASH -->
-    <div id="game-crash" class="section">
-        <div id="crash-history-bar" style="display:flex; margin-bottom:15px; overflow-x:auto;"></div>
-        <div style="background: rgba(255,255,255,0.05); border-radius:30px; height:200px; display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
-            <div id="mult" style="font-size:70px; font-weight: 900; color:var(--gold);">1.00x</div>
-        </div>
-        <input type="number" id="bet-input" value="100" style="width:100%; padding:20px; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:#fff; border-radius:20px; margin-bottom:15px; text-align:center; font-weight:900; font-size: 20px;">
-        <button class="btn-main" id="crash-btn">ПОСТАВИТЬ</button>
-        <button class="btn-main" style="background:none; color:#555" onclick="nav('games')">НАЗАД</button>
-    </div>
-
-    <!-- FROGS -->
-    <div id="game-frogs" class="section">
-        <h2 style="text-align:center">ВЫБЕРИ БОКС (300 ⭐)</h2>
-        <div class="frogs-container">
-            <div class="frog-box" onclick="playFrogs(0)">📦</div>
-            <div class="frog-box" onclick="playFrogs(1)">📦</div>
-            <div class="frog-box" onclick="playFrogs(2)">📦</div>
-        </div>
-        <button class="btn-main" style="background:none; color:#555; margin-top:30px" onclick="nav('games')">НАЗАД</button>
-    </div>
-
-    <!-- ROULETTE (FULL WIDTH BG) -->
-    <div id="game-roulette" class="section">
-        <div style="height:160px; background:rgba(0,0,0,0.6); border-radius:25px; overflow:hidden; position:relative; display:flex; align-items:center; margin-top:50px">
-            <div id="tape" style="display:flex; transition: transform 5s cubic-bezier(0.1, 0, 0.1, 1);"></div>
-            <div style="position:absolute; left:50%; top:0; bottom:0; width:3px; background:var(--gold); z-index:5;"></div>
-        </div>
-        <button class="btn-main" style="margin-top:30px" onclick="startRoulette()">КРУТИТЬ (500 ⭐)</button>
-        <button class="btn-main" style="background:none; color:#555" onclick="nav('games')">НАЗАД</button>
-    </div>
-
-    <!-- INV -->
-    <div id="tab-inv" class="section">
-        <h2 style="color:var(--gold)">ИНВЕНТАРЬ</h2>
-        <div id="inv-list" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;"></div>
-    </div>
-
-    <div id="tab-earn" class="section"><h2>БОНУСЫ</h2></div>
-    <div id="tab-leaders" class="section"><h2>ТОПЫ</h2></div>
-
-    <nav class="navbar">
-        <div class="nav-btn active" onclick="nav('games')">🎮<span>Игры</span></div>
-        <div class="nav-btn" onclick="nav('earn')">💰<span>Бонусы</span></div>
-        <div class="nav-btn" onclick="nav('leaders')">🏆<span>Топы</span></div>
-        <div class="nav-btn" onclick="nav('inv')">👤<span>Профиль</span></div>
-    </nav>
+<div class="header">
+    <div class="live-feed" id="live-feed">⚡ Подключение...</div>
+    <div class="balance-pill">⭐ <span id="balance-val">0</span></div>
 </div>
 
 <div id="win-modal" class="modal-overlay">
     <div class="modal-win">
-        <div id="win-content"></div>
-        <button class="btn-main" onclick="closeModal()">ЗАБРАТЬ</button>
+        <h2 style="color:var(--gold); margin:0; font-size: 28px;">ВЫИГРЫШ!</h2>
+        <div id="win-content" style="padding: 25px 0; font-weight: 900; font-size: 18px;"></div>
+        <button class="btn-main" onclick="claimReward()">ЗАБРАТЬ ПРИЗ</button>
     </div>
 </div>
 
+<!-- GAMES SECTION -->
+<div id="tab-games" class="section active">
+    <div class="game-card card-crash" onclick="openGame('crash')">
+        <div><h2>Краш</h2><p>Умножай свои звезды</p></div><span style="font-size:50px">🚀</span>
+    </div>
+    <div class="game-card card-roulette" onclick="openGame('roulette')">
+        <div><h2>Рулетка</h2><p>Испытай удачу</p></div><span style="font-size:50px">🎡</span>
+    </div>
+    <div class="game-card card-frogs" onclick="openGame('frogs')">
+        <div><h2>Лягушки</h2><p>Найди приз в коробке</p></div><span style="font-size:50px">📦</span>
+    </div>
+</div>
+
+<!-- CRASH GAME -->
+<div id="game-crash" class="section">
+    <div id="crash-history-bar"></div>
+    <div style="background: var(--glass); border-radius:30px; height:200px; display:flex; align-items:center; justify-content:center; border:1px solid var(--glass-border); margin-bottom:20px; box-shadow: inset 0 0 40px rgba(0,0,0,0.5);">
+        <div id="mult" style="font-size:70px; font-weight: 900; color:var(--gold); text-shadow: 0 0 20px rgba(242, 201, 76, 0.4);">1.00x</div>
+    </div>
+    <input type="number" id="bet-input" value="100" style="width:100%; padding:20px; background:var(--glass); border:1px solid var(--glass-border); color:#fff; border-radius:20px; margin-bottom:15px; text-align:center; font-weight:900; font-size: 20px; outline: none;">
+    <button class="btn-main" id="crash-btn" onclick="handleCrash()">ПОСТАВИТЬ</button>
+    <button class="btn-back" onclick="nav('games')">ВЕРНУТЬСЯ НАЗАД</button>
+</div>
+
+<!-- FROGS GAME -->
+<div id="game-frogs" class="section">
+    <h2 style="text-align:center; margin-bottom: 30px;">ВЫБЕРИ ОДИН БОКС</h2>
+    <div class="frogs-container">
+        <div class="frog-box" onclick="playFrogs(0)">📦</div>
+        <div class="frog-box" onclick="playFrogs(1)">📦</div>
+        <div class="frog-box" onclick="playFrogs(2)">📦</div>
+    </div>
+    <p style="text-align:center; opacity:0.4; margin-top:40px; font-weight: 700;">Стоимость участия: 300 ⭐</p>
+    <button class="btn-back" onclick="nav('games')">ВЕРНУТЬСЯ НАЗАД</button>
+</div>
+
+<!-- ROULETTE GAME -->
+<div id="game-roulette" class="section">
+    <div style="height:160px; background:rgba(0,0,0,0.3); border-radius:25px; overflow:hidden; position:relative; display:flex; align-items:center; border: 1px solid var(--glass-border);">
+        <div id="tape" style="display:flex; transition: transform 5s cubic-bezier(0.1, 0, 0.1, 1);"></div>
+        <div style="position:absolute; left:50%; top:0; bottom:0; width:4px; background:var(--gold); z-index:5; box-shadow: 0 0 15px var(--gold);"></div>
+    </div>
+    <button class="btn-main" style="margin-top:30px" onclick="startRoulette()">КРУТИТЬ (500 ⭐)</button>
+    <button class="btn-back" onclick="nav('games')">ВЕРНУТЬСЯ НАЗАД</button>
+</div>
+
+<!-- INVENTORY -->
+<div id="tab-inv" class="section">
+    <h2 style="color:var(--gold); margin-bottom: 20px;">МОЙ ИНВЕНТАРЬ</h2>
+    <div id="inv-list" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;"></div>
+</div>
+
+<nav class="navbar">
+    <div class="nav-btn active" onclick="nav('games')">🎮<span>Игры</span></div>
+    <div class="nav-btn" onclick="nav('earn')">💰<span>Бонусы</span></div>
+    <div class="nav-btn" onclick="nav('leaders')">🏆<span>Топы</span></div>
+    <div class="nav-btn" onclick="nav('shop')">🛒<span>Магазин</span></div>
+    <div class="nav-btn" onclick="nav('inv')">👤<span>Профиль</span></div>
+</nav>
+
 <script>
     const gifts = [
-        {name: 'UFC STRICE', img: 'UFC.png', price: 1450},
-        {name: 'Chill Flame', img: 'Chill.png', price: 450},
-        {name: 'Low Rider', img: 'Low.png', price: 4000},
-        {name: 'Lunar Snake', img: 'Snake.png', price: 300},
-        {name: 'Eternal Rose', img: 'Rose.png', price: 2300},
-        {name: 'Diamond Ring', img: 'Ring.png', price: 2500},
-        {name: 'Toy Bear', img: 'Bear.png', price: 3100},
-        {name: 'Westside Sign', img: 'Sign.png', price: 8000},
-        {name: '150 Stars', img: '⭐', val: 150, price: 150}
+        {name: 'UFC STRICE', img: 'UFC.png', price: 1450, color: '#2d4a3e'},
+        {name: 'Chill Flame', img: 'Chill.png', price: 450, color: '#2d334a'},
+        {name: 'Low Rider', img: 'Low.png', price: 4000, color: '#4a2d3a'},
+        {name: 'Lunar Snake', img: 'Snake.png', price: 300, color: '#2d4a3e'},
+        {name: 'Eternal Rose', img: 'Rose.png', price: 2300, color: '#4a2d3a'},
+        {name: 'Diamond Ring', img: 'Ring.png', price: 2500, color: '#3a2d4a'},
+        {name: 'Toy Bear', img: 'Bear.png', price: 3100, color: '#4a442d'},
+        {name: 'Westside Sign', img: 'Sign.png', price: 8000, color: '#2d2d2d'},
+        {name: '150 Stars', img: '⭐', val: 150, color: '#161920', price: 150}
     ];
 
     let balance = parseInt(localStorage.getItem('user_bal')) || 5000;
     let inventory = JSON.parse(localStorage.getItem('user_inv')) || [];
-    let crashHistory = JSON.parse(localStorage.getItem('crash_hist')) || [1.5, 2.0];
+    let crashHistory = JSON.parse(localStorage.getItem('crash_hist')) || [1.05, 3.42, 1.10, 15.02, 2.10, 1.01];
     let isBusy = false;
     let currentPrize = null;
 
     function sync() {
         localStorage.setItem('user_bal', balance);
         localStorage.setItem('user_inv', JSON.stringify(inventory));
+        localStorage.setItem('crash_hist', JSON.stringify(crashHistory));
         document.getElementById('balance-val').innerText = balance.toLocaleString();
-        checkDaily();
     }
+
+    // LIVE FEED (FIXED)
+    setInterval(() => {
+        const g = gifts[Math.floor(Math.random()*gifts.length)];
+        const feed = document.getElementById('live-feed');
+        feed.style.opacity = 0;
+        setTimeout(() => {
+            const iconHtml = g.img === '⭐' ? '⭐' : `<img src="img/${g.img}" class="live-icon">`;
+            feed.innerHTML = `${iconHtml} <span>Выпал: ${g.name}</span>`;
+            feed.style.opacity = 1;
+        }, 300);
+    }, 4000);
 
     function nav(id) {
         if(isBusy) return;
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById('tab-' + id || 'game-' + id).classList.add('active');
+        const target = document.getElementById('tab-' + id) || document.getElementById('game-' + id);
+        target.classList.add('active');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        const idxMap = {'games':0, 'earn':1, 'leaders':2, 'shop':3, 'inv':4};
+        if(idxMap[id] !== undefined) document.querySelectorAll('.nav-btn')[idxMap[id]].classList.add('active');
         if(id === 'inv') renderInv();
     }
 
-    function openGame(id) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById('game-' + id).classList.add('active');
-        if(id === 'crash') renderCrashHistory();
-    }
+    function openGame(name) { nav(name); if(name === 'crash') renderCrashHistory(); }
 
-    // --- CRASH FIXED ---
+    // CRASH
     let crashActive = false, crashVal = 1.0, crashTimer, currentBet = 0;
-    const crashBtn = document.getElementById('crash-btn');
-
-    crashBtn.addEventListener('click', () => {
-        if (!crashActive) {
-            startCrash();
-        } else {
-            stopCrash(true);
-        }
-    });
-
-    function startCrash() {
+    function handleCrash() {
+        if(crashActive || isBusy) return;
         const bet = parseInt(document.getElementById('bet-input').value);
         if(!bet || bet > balance || bet < 10) return;
-
-        balance -= bet; currentBet = bet; crashActive = true; crashVal = 1.0; sync();
-        crashBtn.classList.add('btn-stop'); crashBtn.innerText = "ЗАБРАТЬ";
+        balance -= bet; currentBet = bet; crashActive = true; sync();
+        document.getElementById('crash-btn').classList.add('btn-stop');
         
-        let crashLimit = (Math.random() < 0.2) ? 1.0 : (1 + Math.random() * 4); 
-
+        let crashLimit = (Math.random() < 0.20) ? 1.00 : (1 + Math.random() * 5);
         crashTimer = setInterval(() => {
-            crashVal += 0.01;
-            document.getElementById('mult').innerText = crashVal.toFixed(2) + "x";
-            crashBtn.innerText = `ЗАБРАТЬ ${(currentBet * crashVal).toFixed(0)}`;
-            
             if (crashVal >= crashLimit) stopCrash(false);
-        }, 50);
+            else {
+                crashVal += 0.01;
+                document.getElementById('mult').innerText = crashVal.toFixed(2) + "x";
+                document.getElementById('crash-btn').innerText = `ЗАБРАТЬ ${(currentBet * crashVal).toFixed(0)}`;
+            }
+        }, 60);
     }
 
     function stopCrash(win) {
@@ -253,39 +235,25 @@
             m.style.color = "#ff4757";
             m.innerText = "BOOM!";
         }
-        crashHistory.unshift(crashVal); if(crashHistory.length > 5) crashHistory.pop();
+        crashHistory.unshift(crashVal); if(crashHistory.length > 10) crashHistory.pop();
         crashActive = false;
-        crashBtn.classList.remove('btn-stop'); crashBtn.innerText = "ПОСТАВИТЬ";
-        sync();
-        setTimeout(() => { m.style.color = "var(--gold)"; m.innerText = "1.00x"; renderCrashHistory(); }, 2000);
+        const btn = document.getElementById('crash-btn');
+        btn.classList.remove('btn-stop'); btn.innerText = "ПОСТАВИТЬ";
+        setTimeout(() => {
+            m.innerText = "1.00x"; m.style.color = "var(--gold)"; crashVal = 1.0; sync(); renderCrashHistory();
+        }, 2000);
     }
+
+    document.getElementById('crash-btn').addEventListener('click', () => { if(crashActive) stopCrash(true); });
 
     function renderCrashHistory() {
-        document.getElementById('crash-history-bar').innerHTML = crashHistory.map(v => `<div class="history-item">${v.toFixed(2)}x</div>`).join('');
+        document.getElementById('crash-history-bar').innerHTML = crashHistory.map(v => {
+            let color = v >= 2 ? '#f2c94c' : (v >= 1.5 ? '#fff' : '#ff4757');
+            return `<div class="history-item" style="color:${color}; border-color:${color}33">${v.toFixed(2)}x</div>`;
+        }).join('');
     }
 
-    // --- FROGS ---
-    function playFrogs(idx) {
-        if(isBusy || balance < 300) return;
-        isBusy = true; balance -= 300; sync();
-        const box = document.querySelectorAll('.frog-box')[idx];
-        box.classList.add('shaking');
-
-        setTimeout(() => {
-            box.classList.remove('shaking');
-            box.classList.add('open');
-            currentPrize = gifts[Math.floor(Math.random() * gifts.length)];
-            const icon = currentPrize.img === '⭐' ? '⭐' : `<img src="img/${currentPrize.img}" class="slot-img">`;
-            box.innerHTML = icon;
-            
-            setTimeout(() => {
-                document.getElementById('win-content').innerHTML = `<h2>ВЫИГРЫШ!</h2>${icon}<p>${currentPrize.name}</p>`;
-                document.getElementById('win-modal').style.display = 'flex';
-            }, 500);
-        }, 1500);
-    }
-
-    // --- ROULETTE ---
+    // ROULETTE (FIXED UI)
     function startRoulette() {
         if(isBusy || balance < 500) return;
         isBusy = true; balance -= 500; sync();
@@ -293,65 +261,59 @@
         tape.style.transition = 'none'; tape.style.transform = 'translateX(0)'; tape.innerHTML = '';
         
         currentPrize = gifts[Math.floor(Math.random()*gifts.length)];
-        for(let i=0; i<45; i++) {
-            const it = i === 40 ? currentPrize : gifts[Math.floor(Math.random()*gifts.length)];
-            tape.innerHTML += `<div>${it.img === '⭐' ? '⭐' : `<img src="img/${it.img}" width="60">`}</div>`;
+        for(let i=0; i<50; i++) {
+            const item = i === 40 ? currentPrize : gifts[Math.floor(Math.random()*gifts.length)];
+            const icon = item.img === '⭐' ? '<div style="font-size:40px">⭐</div>' : `<img src="img/${item.img}" class="tape-gift-img">`;
+            tape.innerHTML += `<div>${icon}<div class="tape-gift-name">${item.name}</div></div>`;
         }
         setTimeout(() => {
             tape.style.transition = 'transform 5s cubic-bezier(0.1, 0, 0.1, 1)';
-            tape.style.transform = `translateX(-${40 * 130 - window.innerWidth/2 + 65}px)`;
+            tape.style.transform = `translateX(-${40 * 140 - window.innerWidth/2 + 70}px)`;
         }, 50);
         setTimeout(() => {
             const icon = currentPrize.img === '⭐' ? '⭐' : `<img src="img/${currentPrize.img}" class="slot-img">`;
-            document.getElementById('win-content').innerHTML = `<h2>РУЛЕТКА</h2>${icon}<p>${currentPrize.name}</p>`;
+            document.getElementById('win-content').innerHTML = `<div style="margin-bottom:15px">${icon}</div>${currentPrize.name}`;
             document.getElementById('win-modal').style.display = 'flex';
         }, 5500);
     }
 
-    // --- DAILY ---
-    function checkDaily() {
-        const last = localStorage.getItem('last_daily') || 0;
-        const diff = Date.now() - last;
-        const btn = document.getElementById('daily-btn');
-        if(diff < 86400000) {
-            btn.disabled = true;
-            const hours = Math.floor((86400000 - diff) / 3600000);
-            btn.innerText = `ЧЕРЕЗ ${hours}Ч`;
-        } else {
-            btn.disabled = false;
-            btn.innerText = "ОТКРЫТЬ КЕЙС";
-        }
-    }
-
-    function openDaily() {
-        localStorage.setItem('last_daily', Date.now());
-        const win = Math.random() < 0.1;
-        if(win) {
-            currentPrize = gifts[Math.floor(Math.random() * gifts.length)];
+    // FROGS
+    function playFrogs(idx) {
+        if(isBusy || balance < 300) return;
+        isBusy = true; balance -= 300; sync();
+        const box = document.querySelectorAll('.frog-box')[idx];
+        box.classList.add('open'); box.innerText = "🌀";
+        currentPrize = gifts[Math.floor(Math.random() * gifts.length)];
+        setTimeout(() => {
             const icon = currentPrize.img === '⭐' ? '⭐' : `<img src="img/${currentPrize.img}" class="slot-img">`;
-            document.getElementById('win-content').innerHTML = `<h2>DAILY WIN!</h2>${icon}<p>${currentPrize.name}</p>`;
+            box.innerHTML = icon;
+            document.getElementById('win-content').innerHTML = `<div style="margin-bottom:15px">${icon}</div>${currentPrize.name}`;
             document.getElementById('win-modal').style.display = 'flex';
-        } else {
-            alert("Пусто! Попробуй завтра.");
-        }
-        sync();
+        }, 1200);
     }
 
-    function closeModal() {
+    function claimReward() {
         if(currentPrize.val) balance += currentPrize.val; else inventory.push(currentPrize);
         document.getElementById('win-modal').style.display = 'none';
         document.querySelectorAll('.frog-box').forEach(b => { b.classList.remove('open'); b.innerText = "📦"; });
-        isBusy = false; currentPrize = null; sync();
+        isBusy = false; sync();
     }
 
     function renderInv() {
         const list = document.getElementById('inv-list');
-        list.innerHTML = inventory.map(it => `
-            <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:15px; text-align:center; border:1px solid var(--glass-border);">
-                ${it.img === '⭐' ? '⭐' : `<img src="img/${it.img}" width="50">`}
-                <div style="font-size:10px; margin-top:5px;">${it.name}</div>
-            </div>
-        `).join('');
+        list.innerHTML = inventory.length ? '' : '<p style="grid-column:1/3; opacity:0.3; text-align:center; padding: 20px;">Пусто</p>';
+        inventory.forEach((it, i) => {
+            const icon = it.img === '⭐' ? '⭐' : `<img src="img/${it.img}" class="slot-img">`;
+            list.innerHTML += `<div class="inv-item">
+                <div>${icon}</div><div style="font-size:12px; margin: 10px 0;">${it.name}</div>
+                <button onclick="sell(${i})" style="width:100%; padding:10px; background:var(--gold); border:none; border-radius:12px; font-weight:900; font-size:11px;">ПРОДАТЬ ${(it.price*0.8).toFixed(0)}</button>
+            </div>`;
+        });
+    }
+
+    function sell(i) {
+        balance += Math.floor(inventory[i].price * 0.8);
+        inventory.splice(i, 1); sync(); renderInv();
     }
 
     sync();
