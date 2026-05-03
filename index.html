@@ -30,7 +30,7 @@
         }
 
         .section { display: none; height: calc(100vh - 130px); padding: 15px; box-sizing: border-box; overflow-y: auto; padding-bottom: 80px; }
-        .active { display: flex; flex-direction: column; animation: fadeIn 0.3s ease; }
+        .active { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         .game-card { border-radius: 24px; padding: 20px; min-height: 110px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; cursor: pointer; transition: 0.1s; border: 1px solid rgba(255,255,255,0.05); }
@@ -47,8 +47,9 @@
             font-size: 11px; font-weight: 900;
         }
 
-        /* ROULETTE TAPE */
-        #tape div { 
+        /* ROULETTE & CASE TAPE */
+        .roulette-window { height:160px; background:rgba(0,0,0,0.3); border-radius:25px; overflow:hidden; position:relative; display:flex; align-items:center; border: 1px solid var(--glass-border); }
+        .tape div { 
             min-width: 130px; height: 130px; margin: 0 5px; border-radius: 18px; 
             overflow: hidden; position: relative; background: #24272e;
             display: flex; align-items: center; justify-content: center;
@@ -57,10 +58,11 @@
         .tape-gift-img { width: 100%; height: 100%; object-fit: cover; }
         .tape-gift-name { 
             position: absolute; bottom: 0; left: 0; right: 0; 
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
-            padding: 6px; font-size: 10px; font-weight: 800; text-align: center;
-            color: #fff; text-transform: uppercase;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+            padding: 8px 4px; font-size: 9px; font-weight: 800; text-align: center;
+            color: #fff; text-transform: uppercase; letter-spacing: 0.5px;
         }
+        .pointer { position:absolute; left:50%; top:0; bottom:0; width:4px; background:var(--gold); z-index:5; box-shadow: 0 0 15px var(--gold); transform: translateX(-50%); }
 
         .btn-main { background: #fff; color: #000; border: none; width: 100%; padding: 18px; border-radius: 18px; font-weight: 900; font-size: 16px; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 15px rgba(255,255,255,0.1); }
         .btn-stop { background: #ff4757 !important; color: #fff !important; }
@@ -71,12 +73,10 @@
         .nav-btn.active { color: #fff; }
 
         .inv-item { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 15px; text-align: center; }
+        .slot-img { width: 65px; height: 65px; object-fit: contain; }
         
         .modal-overlay { display: none; position: fixed; inset:0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
         .modal-win { background: #16181d; padding: 35px 25px; border-radius: 35px; border: 2px solid var(--gold); text-align: center; width: 80%; }
-        
-        .frog-box { width: 90px; height: 110px; background: var(--glass); border: 2px dashed var(--glass-border); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer; }
-        .frog-box.open { background: rgba(255,255,255,0.15); border-style: solid; border-color: var(--gold); transform: scale(1.05); }
     </style>
 </head>
 <body>
@@ -94,61 +94,71 @@
     </div>
 </div>
 
-<!-- GAMES SECTION -->
+<!-- Игры -->
 <div id="tab-games" class="section active">
     <div class="game-card card-crash" onclick="openGame('crash')">
-        <div><h2>Краш</h2><p>Умножай свои звезды</p></div><span style="font-size:50px">🚀</span>
+        <div><h2>Краш</h2><p>Умножай звезды</p></div><span style="font-size:50px">🚀</span>
     </div>
     <div class="game-card card-roulette" onclick="openGame('roulette')">
         <div><h2>Рулетка</h2><p>Испытай удачу</p></div><span style="font-size:50px">🎡</span>
     </div>
     <div class="game-card card-frogs" onclick="openGame('frogs')">
-        <div><h2>Лягушки</h2><p>Найди приз в коробке</p></div><span style="font-size:50px">📦</span>
+        <div><h2>Лягушки</h2><p>Найди приз</p></div><span style="font-size:50px">📦</span>
     </div>
 </div>
 
-<!-- CRASH GAME -->
+<!-- Краш -->
 <div id="game-crash" class="section">
     <div id="crash-history-bar"></div>
-    <div style="background: var(--glass); border-radius:30px; height:200px; display:flex; align-items:center; justify-content:center; border:1px solid var(--glass-border); margin-bottom:20px; box-shadow: inset 0 0 40px rgba(0,0,0,0.5);">
-        <div id="mult" style="font-size:70px; font-weight: 900; color:var(--gold); text-shadow: 0 0 20px rgba(242, 201, 76, 0.4);">1.00x</div>
+    <div style="background: var(--glass); border-radius:30px; height:200px; display:flex; align-items:center; justify-content:center; border:1px solid var(--glass-border); margin-bottom:20px;">
+        <div id="mult" style="font-size:70px; font-weight: 900; color:var(--gold);">1.00x</div>
     </div>
-    <input type="number" id="bet-input" value="100" style="width:100%; padding:20px; background:var(--glass); border:1px solid var(--glass-border); color:#fff; border-radius:20px; margin-bottom:15px; text-align:center; font-weight:900; font-size: 20px; outline: none;">
+    <input type="number" id="bet-input" value="100" style="width:100%; padding:20px; background:var(--glass); border:1px solid var(--glass-border); color:#fff; border-radius:20px; margin-bottom:15px; text-align:center; font-weight:900; font-size: 20px;">
     <button class="btn-main" id="crash-btn" onclick="handleCrash()">ПОСТАВИТЬ</button>
-    <button class="btn-back" onclick="nav('games')">ВЕРНУТЬСЯ НАЗАД</button>
+    <button class="btn-back" onclick="nav('games')">НАЗАД</button>
 </div>
 
-<!-- FROGS GAME -->
+<!-- Лягушки -->
 <div id="game-frogs" class="section">
-    <h2 style="text-align:center; margin-bottom: 30px;">ВЫБЕРИ ОДИН БОКС</h2>
+    <h2 style="text-align:center;">ВЫБЕРИ БОКС</h2>
     <div class="frogs-container">
         <div class="frog-box" onclick="playFrogs(0)">📦</div>
         <div class="frog-box" onclick="playFrogs(1)">📦</div>
         <div class="frog-box" onclick="playFrogs(2)">📦</div>
     </div>
-    <p style="text-align:center; opacity:0.4; margin-top:40px; font-weight: 700;">Стоимость участия: 300 ⭐</p>
-    <button class="btn-back" onclick="nav('games')">ВЕРНУТЬСЯ НАЗАД</button>
+    <button class="btn-back" onclick="nav('games')">НАЗАД</button>
 </div>
 
-<!-- ROULETTE GAME -->
+<!-- Рулетка -->
 <div id="game-roulette" class="section">
-    <div style="height:160px; background:rgba(0,0,0,0.3); border-radius:25px; overflow:hidden; position:relative; display:flex; align-items:center; border: 1px solid var(--glass-border);">
-        <div id="tape" style="display:flex; transition: transform 5s cubic-bezier(0.1, 0, 0.1, 1);"></div>
-        <div style="position:absolute; left:50%; top:0; bottom:0; width:4px; background:var(--gold); z-index:5; box-shadow: 0 0 15px var(--gold);"></div>
+    <div class="roulette-window">
+        <div id="tape" class="tape" style="display:flex; transition: transform 5s cubic-bezier(0.1, 0, 0.1, 1);"></div>
+        <div class="pointer"></div>
     </div>
-    <button class="btn-main" style="margin-top:30px" onclick="startRoulette()">КРУТИТЬ (500 ⭐)</button>
-    <button class="btn-back" onclick="nav('games')">ВЕРНУТЬСЯ НАЗАД</button>
+    <button class="btn-main" style="margin-top:30px" onclick="startRoulette('tape', 500)">КРУТИТЬ (500 ⭐)</button>
+    <button class="btn-back" onclick="nav('games')">НАЗАД</button>
 </div>
 
-<!-- INVENTORY -->
+<!-- Ежедневный Кейс (Earn) -->
+<div id="tab-earn" class="section">
+    <h2 style="color:var(--gold); text-align:center;">ЕЖЕДНЕВНЫЙ КЕЙС</h2>
+    <div class="roulette-window">
+        <div id="case-tape" class="tape" style="display:flex; transition: transform 5s cubic-bezier(0.1, 0, 0.1, 1);"></div>
+        <div class="pointer"></div>
+    </div>
+    <button class="btn-main" id="case-btn" style="margin-top:30px" onclick="startRoulette('case-tape', 0)">ОТКРЫТЬ БЕСПЛАТНО</button>
+    <p style="text-align:center; opacity:0.5; font-size:12px; margin-top:15px;">Доступно раз в 24 часа</p>
+</div>
+
+<!-- Инвентарь -->
 <div id="tab-inv" class="section">
-    <h2 style="color:var(--gold); margin-bottom: 20px;">МОЙ ИНВЕНТАРЬ</h2>
+    <h2 style="color:var(--gold);">ИНВЕНТАРЬ</h2>
     <div id="inv-list" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;"></div>
 </div>
 
 <nav class="navbar">
     <div class="nav-btn active" onclick="nav('games')">🎮<span>Игры</span></div>
-    <div class="nav-btn" onclick="nav('earn')">💰<span>Бонусы</span></div>
+    <div class="nav-btn" onclick="nav('earn')">🎁<span>Кейс</span></div>
     <div class="nav-btn" onclick="nav('leaders')">🏆<span>Топы</span></div>
     <div class="nav-btn" onclick="nav('shop')">🛒<span>Магазин</span></div>
     <div class="nav-btn" onclick="nav('inv')">👤<span>Профиль</span></div>
@@ -156,20 +166,20 @@
 
 <script>
     const gifts = [
-        {name: 'UFC STRICE', img: 'UFC.png', price: 1450, color: '#2d4a3e'},
-        {name: 'Chill Flame', img: 'Chill.png', price: 450, color: '#2d334a'},
-        {name: 'Low Rider', img: 'Low.png', price: 4000, color: '#4a2d3a'},
-        {name: 'Lunar Snake', img: 'Snake.png', price: 300, color: '#2d4a3e'},
-        {name: 'Eternal Rose', img: 'Rose.png', price: 2300, color: '#4a2d3a'},
-        {name: 'Diamond Ring', img: 'Ring.png', price: 2500, color: '#3a2d4a'},
-        {name: 'Toy Bear', img: 'Bear.png', price: 3100, color: '#4a442d'},
-        {name: 'Westside Sign', img: 'Sign.png', price: 8000, color: '#2d2d2d'},
-        {name: '150 Stars', img: '⭐', val: 150, color: '#161920', price: 150}
+        {name: 'UFC STRICE', img: 'UFC.png', price: 1450},
+        {name: 'Chill Flame', img: 'Chill.png', price: 450},
+        {name: 'Low Rider', img: 'Low.png', price: 4000},
+        {name: 'Lunar Snake', img: 'Snake.png', price: 300},
+        {name: 'Eternal Rose', img: 'Rose.png', price: 2300},
+        {name: 'Diamond Ring', img: 'Ring.png', price: 2500},
+        {name: 'Toy Bear', img: 'Bear.png', price: 3100},
+        {name: 'Westside Sign', img: 'Sign.png', price: 8000},
+        {name: '150 Stars', img: '⭐', val: 150, price: 150}
     ];
 
     let balance = parseInt(localStorage.getItem('user_bal')) || 5000;
     let inventory = JSON.parse(localStorage.getItem('user_inv')) || [];
-    let crashHistory = JSON.parse(localStorage.getItem('crash_hist')) || [1.05, 3.42, 1.10, 15.02, 2.10, 1.01];
+    let crashHistory = JSON.parse(localStorage.getItem('crash_hist')) || [1.05, 3.42, 1.10, 15.02];
     let isBusy = false;
     let currentPrize = null;
 
@@ -180,7 +190,7 @@
         document.getElementById('balance-val').innerText = balance.toLocaleString();
     }
 
-    // LIVE FEED (FIXED)
+    // LIVE FEED (Обновленный)
     setInterval(() => {
         const g = gifts[Math.floor(Math.random()*gifts.length)];
         const feed = document.getElementById('live-feed');
@@ -205,7 +215,7 @@
 
     function openGame(name) { nav(name); if(name === 'crash') renderCrashHistory(); }
 
-    // CRASH
+    // CRASH (Обновленный)
     let crashActive = false, crashVal = 1.0, crashTimer, currentBet = 0;
     function handleCrash() {
         if(crashActive || isBusy) return;
@@ -214,7 +224,7 @@
         balance -= bet; currentBet = bet; crashActive = true; sync();
         document.getElementById('crash-btn').classList.add('btn-stop');
         
-        let crashLimit = (Math.random() < 0.20) ? 1.00 : (1 + Math.random() * 5);
+        let crashLimit = (Math.random() < 0.20) ? 1.00 : (1 + Math.random() * 4);
         crashTimer = setInterval(() => {
             if (crashVal >= crashLimit) stopCrash(false);
             else {
@@ -249,27 +259,32 @@
     function renderCrashHistory() {
         document.getElementById('crash-history-bar').innerHTML = crashHistory.map(v => {
             let color = v >= 2 ? '#f2c94c' : (v >= 1.5 ? '#fff' : '#ff4757');
-            return `<div class="history-item" style="color:${color}; border-color:${color}33">${v.toFixed(2)}x</div>`;
+            return `<div class="history-item" style="color:${color}; border: 1px solid ${color}44">${v.toFixed(2)}x</div>`;
         }).join('');
     }
 
-    // ROULETTE (FIXED UI)
-    function startRoulette() {
-        if(isBusy || balance < 500) return;
-        isBusy = true; balance -= 500; sync();
-        const tape = document.getElementById('tape');
+    // РУЛЕТКА И КЕЙС (Общая логика)
+    function startRoulette(tapeId, cost) {
+        if(isBusy || balance < cost) return;
+        isBusy = true; balance -= cost; sync();
+        
+        const tape = document.getElementById(tapeId);
         tape.style.transition = 'none'; tape.style.transform = 'translateX(0)'; tape.innerHTML = '';
         
         currentPrize = gifts[Math.floor(Math.random()*gifts.length)];
+        
         for(let i=0; i<50; i++) {
             const item = i === 40 ? currentPrize : gifts[Math.floor(Math.random()*gifts.length)];
             const icon = item.img === '⭐' ? '<div style="font-size:40px">⭐</div>' : `<img src="img/${item.img}" class="tape-gift-img">`;
             tape.innerHTML += `<div>${icon}<div class="tape-gift-name">${item.name}</div></div>`;
         }
+
         setTimeout(() => {
             tape.style.transition = 'transform 5s cubic-bezier(0.1, 0, 0.1, 1)';
-            tape.style.transform = `translateX(-${40 * 140 - window.innerWidth/2 + 70}px)`;
+            const move = 40 * 140 - (window.innerWidth / 2) + 70;
+            tape.style.transform = `translateX(-${move}px)`;
         }, 50);
+
         setTimeout(() => {
             const icon = currentPrize.img === '⭐' ? '⭐' : `<img src="img/${currentPrize.img}" class="slot-img">`;
             document.getElementById('win-content').innerHTML = `<div style="margin-bottom:15px">${icon}</div>${currentPrize.name}`;
@@ -277,7 +292,6 @@
         }, 5500);
     }
 
-    // FROGS
     function playFrogs(idx) {
         if(isBusy || balance < 300) return;
         isBusy = true; balance -= 300; sync();
@@ -301,12 +315,12 @@
 
     function renderInv() {
         const list = document.getElementById('inv-list');
-        list.innerHTML = inventory.length ? '' : '<p style="grid-column:1/3; opacity:0.3; text-align:center; padding: 20px;">Пусто</p>';
+        list.innerHTML = inventory.length ? '' : '<p style="grid-column:1/3; opacity:0.3; text-align:center;">Пусто</p>';
         inventory.forEach((it, i) => {
             const icon = it.img === '⭐' ? '⭐' : `<img src="img/${it.img}" class="slot-img">`;
             list.innerHTML += `<div class="inv-item">
-                <div>${icon}</div><div style="font-size:12px; margin: 10px 0;">${it.name}</div>
-                <button onclick="sell(${i})" style="width:100%; padding:10px; background:var(--gold); border:none; border-radius:12px; font-weight:900; font-size:11px;">ПРОДАТЬ ${(it.price*0.8).toFixed(0)}</button>
+                <div>${icon}</div><div style="font-size:11px; margin: 10px 0;">${it.name}</div>
+                <button onclick="sell(${i})" style="width:100%; padding:8px; background:var(--gold); border:none; border-radius:10px; font-weight:900; font-size:10px;">ПРОДАТЬ ${(it.price*0.8).toFixed(0)}</button>
             </div>`;
         });
     }
